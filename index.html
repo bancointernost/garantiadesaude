@@ -137,6 +137,14 @@ table.lt .btn.sm{margin-top:4px}
 .locbar .locacts{display:flex;gap:6px}
 .locbar .btn.sm{padding:2px 9px;font-size:.78rem}
 .locname{font-weight:700}
+.contatos{display:flex;flex-wrap:wrap;gap:6px 14px;border-top:1px solid var(--line);padding-top:12px;font-size:.8rem}
+.ct{display:inline-flex;gap:5px;align-items:baseline;text-decoration:none;color:var(--muted)}
+.ct:hover .ct-n{text-decoration:underline}
+.ct-l{font-weight:700}
+.ct-n{color:var(--ink);font-variant-numeric:tabular-nums;user-select:all}
+.ct.wa .ct-n{color:#128C4B;font-weight:700}
+:root[data-theme="dark"] .ct.wa .ct-n{color:#4ADE80}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .ct.wa .ct-n{color:#4ADE80}}
 .perfil{max-width:560px}
 .perfil .fl{display:flex;flex-direction:column;gap:4px;font-size:.85rem;color:var(--muted);font-weight:700}
 .near-side{display:flex;flex-direction:column;align-items:flex-end;justify-content:space-between;gap:8px}
@@ -182,7 +190,7 @@ details summary{cursor:pointer;color:var(--accent);font-weight:700;font-size:.9r
 .near-cat{font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:700}
 footer{font-size:.8rem;color:var(--muted);border-top:1px solid var(--line);padding-top:12px}
 button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
-</style>
+.brand{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px}.brand img{background:#fff;border-radius:6px;padding:4px 6px;height:43px;width:auto;box-sizing:content-box}.unof{font-size:.72rem;color:var(--muted)}</style>
 <style>body{margin:0}</style>
 </head>
 <body>
@@ -190,7 +198,7 @@ button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-vis
 
 <div class="wrap">
   <header>
-    <div class="eyebrow">Garantia de Saúde</div>
+    <div class="brand"><img src="data:image/png;base64,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" alt="Garantia de Saúde" width="130" height="43"><span class="unof">Painel pessoal · não oficial</span></div>
     <h1>Plano Garantido Ouro 100</h1>
     <p class="lede">Rede credenciada por região (clínicas, laboratórios e hospitais), agenda de consultas e exames com o prazo máximo da ANS, e registro de protocolos.</p>
   </header>
@@ -286,6 +294,12 @@ button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-vis
     </form>
   </div>
 
+  <div class="contatos" aria-label="Telefones do plano">
+    <a class="ct" href="tel:+551120378500"><span class="ct-l">SAC</span><span class="ct-n">(11) 2037-8500</span></a>
+    <a class="ct" href="tel:+551120588500"><span class="ct-l">Guias</span><span class="ct-n">(11) 2058-8500</span></a>
+    <a class="ct wa" href="https://wa.me/551120378500" target="_blank" rel="noopener"><span class="ct-l">WhatsApp</span><span class="ct-n">(11) 2037-8500</span></a>
+    <a class="ct" href="tel:08007019656"><span class="ct-l">ANS</span><span class="ct-n">0800 701 9656</span></a>
+  </div>
   <footer>Fonte: guia médico da Garantia de Saúde (clínicas médicas, laboratórios e clínicas de imagem, hospitais e parceiros), gerado em 22/09/2026. Antes de agendar, confirme por telefone se o prestador atende o Garantido Ouro 100.</footer>
 </div>
 
@@ -424,12 +438,12 @@ const Store={mode:'local',db:null,subs:{},cache:{agenda:[],protocolos:[],prefs:[
     for(const c of ['agenda','protocolos','prefs']){ this.cache[c]=this.lsGet(c); }
     renderAll();
     const use=window.claude&&window.claude.use;
-    if(!use){ this.showBanner(); return; }
+    if(!use){ this.showBanner(); autoLoc(); return; }
     window.claude.use('db').then(db=>{
       if(!db){ this.showBanner(); return; }
       this.db=db; this.mode='db'; $('#storeBanner').hidden=true;
       for(const c of ['agenda','protocolos','prefs']){
-        db.collection(c).onSnapshot(s=>{ this.cache[c]=s.docs.map(d=>({id:d.id,...d.data()})); renderAll(); },
+        db.collection(c).onSnapshot(s=>{ this.cache[c]=s.docs.map(d=>({id:d.id,...d.data()})); renderAll(); if(c==='prefs'&&!s.metadata.fromCache) autoLoc(); },
           ()=>{ this.mode='local'; this.showBanner(); });
       }
     }).catch(()=>this.showBanner());
@@ -892,11 +906,41 @@ function renderPerfil(){ const P=getPerfil();
   [['pf_nome','nome'],['pf_end','end'],['pf_cel','cel']].forEach(([id,k])=>{ const i=$('#'+id); if(document.activeElement!==i&&!i.dataset.dirty) i.value=k==='cel'?fmtCel(P[k]):(P[k]||''); }); }
 ['pf_nome','pf_end','pf_cel'].forEach(id=>$('#'+id).addEventListener('input',e=>e.target.dataset.dirty='1'));
 $('#pf_cel').addEventListener('blur',e=>{ e.target.value=fmtCel(e.target.value); });
-$('#fPerfil').onsubmit=async ev=>{ ev.preventDefault();
-  const o={nome:$('#pf_nome').value.trim(),end:$('#pf_end').value.trim(),cel:$('#pf_cel').value.replace(/\D/g,'')};
+const noId=o=>{ const c={...o}; delete c.id; return c; };
+async function geocodeAny(q){
+  const c=parseCoord(q); if(c) return {...c,local:q};
+  if(ONLINE){ try{ return await geocodeOnline(q); }catch(e){ return null; } }
+  let f=sampleFn; if(!f&&window.claude&&window.claude.use){ try{ f=await window.claude.use('sample'); }catch(e){} } if(!f) return null;
+  const city=cityOf(q);
+  try{ const r=await f.json('Você é um geocodificador para a Grande São Paulo (Brasil). '+(city?'Este endereço fica em '+city.n+'/SP. ':'')
+      +'Estime latitude e longitude do endereço abaixo. Se não souber a rua, use o centro do bairro; se nem isso, o centro da cidade. Nunca troque de cidade. '
+      +'Responda só com JSON: {"ok":true,"lat":-23.46,"lon":-46.53,"local":"Rua, bairro, cidade"} ou {"ok":false}.\n\nEndereço: '+q.slice(0,300));
+    let la=Number(r&&r.lat), lo=Number(r&&r.lon); const ok=r&&r.ok!==false&&SPBOX(la,lo);
+    if(city&&(!ok||!inBox(city,la,lo))) return {lat:city.lat,lon:city.lon,local:city.n+' (centro)'};
+    return ok?{lat:+la.toFixed(5),lon:+lo.toFixed(5),local:String(r.local||q).slice(0,120)}:null; }catch(e){ return null; } }
+const homeName=P=>'Casa — '+(P.geoLocal||P.end);
+async function applyHome(P){ const L=getLoc(); if(L.src==='perfil'&&Math.abs(L.lat-P.lat)<1e-5&&Math.abs(L.lon-P.lon)<1e-5&&L.nome===homeName(P)) return;
+  await Store.save('prefs','local',{nome:homeName(P),lat:P.lat,lon:P.lon,src:'perfil'}); F.sort='dist'; saveF(); }
+let autoLocDone=false;
+async function autoLoc(){ if(autoLocDone) return; autoLocDone=true;
+  let P=getPerfil(); if(!P.end) return;
+  if(!(typeof P.lat==='number'&&P.geoEnd===P.end)){ const g=await geocodeAny(P.end); if(!g) return;
+    P={...noId(P),lat:g.lat,lon:g.lon,geoEnd:P.end,geoLocal:g.local}; await Store.save('prefs','perfil',P); }
+  await applyHome(P); }
+$('#fPerfil').onsubmit=async ev=>{ ev.preventDefault(); const m=$('#pf_msg'); const btn=$('#fPerfil button[type=submit]');
+  const old=noId(getPerfil());
+  let o={...old,nome:$('#pf_nome').value.trim(),end:$('#pf_end').value.trim(),cel:$('#pf_cel').value.replace(/\D/g,'')};
   ['pf_nome','pf_end','pf_cel'].forEach(id=>delete $('#'+id).dataset.dirty);
-  await Store.save('prefs','perfil',o); const m=$('#pf_msg'); m.textContent='Perfil salvo.'; m.hidden=false; setTimeout(()=>m.hidden=true,3000); };
-$('#pf_usar').onclick=()=>{ const e=$('#pf_end').value.trim(); const m=$('#pf_msg');
+  let msg='Perfil salvo.';
+  if(o.end&&(o.geoEnd!==o.end||typeof o.lat!=='number')){ btn.disabled=true; btn.textContent='Localizando...';
+    const g=await geocodeAny(o.end); btn.disabled=false; btn.textContent='Salvar';
+    if(g){ o={...o,lat:g.lat,lon:g.lon,geoEnd:o.end,geoLocal:g.local}; msg='Perfil salvo. Endereço reconhecido: '+g.local+'. As distâncias agora partem daqui.'; }
+    else { delete o.lat; delete o.lon; delete o.geoEnd; delete o.geoLocal; msg='Perfil salvo, mas o endereço não foi encontrado. Confira a grafia ou inclua o CEP.'; } }
+  if(!o.end){ delete o.lat; delete o.lon; delete o.geoEnd; delete o.geoLocal; }
+  await Store.save('prefs','perfil',o); if(typeof o.lat==='number') await applyHome(o);
+  m.textContent=msg; m.hidden=false; setTimeout(()=>m.hidden=true,6000); };
+$('#pf_usar').onclick=async()=>{ const e=$('#pf_end').value.trim(); const m=$('#pf_msg'); const P=getPerfil();
+  if(e&&P.geoEnd===e&&typeof P.lat==='number'){ await applyHome(P); m.textContent='Ponto de partida: '+homeName(P)+'.'; m.hidden=false; return; }
   if(!e){ m.textContent='Preencha o endereço primeiro.'; m.hidden=false; $('#pf_end').focus(); return; }
   $('#locBtn').click(); $('#loc_addr').value=e; if(!nameDirty){ $('#loc_nome').value='Casa'; nameDirty=true; } $('#loc_find').click(); };
 function renderAll(){ renderPerfil(); renderInicio(); renderAgenda(); renderProt(); renderRede(); }
