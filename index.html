@@ -65,7 +65,8 @@ nav.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(-
 input,select,textarea{font:inherit;font-size:.95rem;padding:7px 10px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink);max-width:100%;width:100%}
 textarea{min-height:70px;resize:vertical}
 .filters{display:flex;flex-direction:column;gap:10px;background:var(--bg);padding-block:6px}
-.frow2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr);gap:8px}
+.frow2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr) minmax(0,1fr);gap:8px}
+@media (max-width:800px){.frow2{grid-template-columns:1fr 1fr}.frow2 #fEsp{grid-column:1/-1;grid-row:2}}
 .frow3{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center}
 @media (max-width:560px){.frow2{grid-template-columns:1fr}}
 .frow{display:grid;grid-template-columns:minmax(230px,1.4fr) 2fr 1.6fr auto;gap:8px;align-items:center}
@@ -131,7 +132,10 @@ table.lt td:nth-child(2){min-width:180px}
 table.lt td.esp{min-width:220px;color:var(--muted)}
 table.lt tr.ger td:first-child{box-shadow:inset 4px 0 0 var(--warm)}
 table.lt .btn.sm{margin-top:4px}
-.locbar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;background:var(--accent-soft);border-radius:10px;padding:10px 14px}
+.locbar{display:flex;align-items:center;gap:6px 10px;flex-wrap:wrap;background:var(--accent-soft);border-radius:8px;padding:6px 10px;font-size:.88rem}
+.locbar .locname{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.locbar .locacts{display:flex;gap:6px}
+.locbar .btn.sm{padding:2px 9px;font-size:.78rem}
 .locname{font-weight:700}
 .btn.gps::before{content:"";display:inline-block;width:.6em;height:.6em;border-radius:50%;border:2px solid currentColor;margin-right:6px;vertical-align:.05em}
 .item .km{align-self:flex-start}
@@ -170,13 +174,13 @@ button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-vis
 
   <div id="storeBanner" class="banner" hidden></div>
 
-  <div class="locbar">
-    <div><span class="tag">Ponto de partida</span><div class="locname" id="locName">Rua Ana Soares Barcelos (Vila Venditti, Guarulhos)</div></div>
-    <div class="row"><button class="btn sm gps" type="button" id="gpsBtn" hidden>Usar minha localização</button><button class="btn ghost sm" type="button" id="locBtn">Alterar localização</button></div>
-  </div>
 
   <!-- INÍCIO -->
   <div class="panel" id="p-inicio">
+    <div class="locbar">
+      <span class="tag">Ponto de partida</span><span class="locname" id="locName">Rua Ana Soares Barcelos (Vila Venditti, Guarulhos)</span>
+      <span class="locacts"><button class="btn sm gps" type="button" id="gpsBtn" hidden>Usar minha localização</button><button class="btn ghost sm" type="button" id="locBtn">Alterar</button></span>
+    </div>
     <div class="stats" id="stats"></div>
     <div class="grid2">
       <div class="box">
@@ -204,8 +208,8 @@ button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-vis
       <div class="frow2">
         <select id="fTipo" aria-label="Tipo de prestador"></select>
         <select id="fEsp" aria-label="Especialidade ou exame"><option value="">Todas as especialidades e exames</option></select>
+        <select id="fReg" aria-label="Região"></select>
       </div>
-      <div class="row" id="regPills" role="group" aria-label="Região"></div>
       <div class="frow3">
         <input id="fTxt" type="search" placeholder="Buscar por nome, bairro ou rua" aria-label="Buscar">
         <label class="chk"><input type="checkbox" id="fFav"> Só favoritos</label>
@@ -438,6 +442,7 @@ function fillEsp(){
     list.forEach(e=>{ const o=el('option',null,e+' ('+cnt(e)+')'); o.value=e; box.append(o); }); }
   s.value=F.esp; s.setAttribute('aria-label',label.replace(/^Tod[ao]s? (as |os )?/,''));
 }
+$('#fReg').onchange=e=>{F.reg=e.target.value; saveF(); renderRede();};
 $('#fTipo').onchange=e=>{F.tipo=e.target.value; F.esp=''; saveF(); renderRede();};
 $('#fEsp').onchange=e=>{F.esp=e.target.value; saveF(); renderRede();};
 let tT; $('#fTxt').oninput=e=>{ clearTimeout(tT); tT=setTimeout(()=>{F.txt=e.target.value.trim(); saveF(); renderRede();},180); };
@@ -641,7 +646,8 @@ function card(r,fav){
 function renderRede(){
   { const s=$('#fTipo'); s.innerHTML=''; [{k:'',n:'Todos os tipos'},...TIPOS].forEach(it=>{ const c=DATA.filter(r=>(!it.k||r.tipo===it.k)&&matches(r,'tipo')).length;
       const o=el('option',null,it.n+' ('+c+')'); o.value=it.k; s.append(o); }); s.value=F.tipo; }
-  pillRow($('#regPills'),[{k:'',n:'Todas as regiões'},...REG],'reg');
+  { const s=$('#fReg'); s.innerHTML=''; [{k:'',n:'Todas as regiões'},...REG].forEach(it=>{ const c=DATA.filter(r=>(!it.k||r.reg===it.k)&&matches(r,'reg')).length;
+      const o=el('option',null,it.n+' ('+c+')'); o.value=it.k; if(c===0&&it.k&&it.k!==F.reg) o.disabled=true; s.append(o); }); s.value=F.reg; }
   fillEsp(); if(document.activeElement!==$('#fTxt')) $('#fTxt').value=F.txt; $('#fFav').checked=F.fav;
   const fav=favSet(); const box=$('#redeList'); box.innerHTML=''; let tot=0;
   const draw=(title,desc,items)=>{ const s=el('section','reg'); s.style.marginBottom='22px';
