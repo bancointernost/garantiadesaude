@@ -137,6 +137,12 @@ table.lt .btn.sm{margin-top:4px}
 .locbar .locacts{display:flex;gap:6px}
 .locbar .btn.sm{padding:2px 9px;font-size:.78rem}
 .locname{font-weight:700}
+dialog.dlg-sm{width:min(440px,calc(100vw - 32px))}
+dialog.dlg-sm form{padding:16px;gap:10px}
+dialog.dlg-sm h2{font-size:1.1rem}
+dialog.dlg-sm .gps{align-self:flex-start}
+dialog.dlg-sm .adv{display:flex;flex-direction:column;gap:8px;margin-top:8px}
+dialog.dlg-sm summary{font-size:.85rem}
 .btn.gps::before{content:"";display:inline-block;width:.6em;height:.6em;border-radius:50%;border:2px solid currentColor;margin-right:6px;vertical-align:.05em}
 .item .km{align-self:flex-start}
 .searchrow{display:flex;gap:8px}
@@ -289,30 +295,26 @@ button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-vis
   </form>
 </dialog>
 
-<dialog id="dlgLoc">
+<dialog id="dlgLoc" class="dlg-sm">
   <form id="fLoc">
-    <h2>Definir localização</h2>
-    <button type="button" class="btn gps" id="gpsBtn2" hidden>Usar a localização deste aparelho</button>
-    <p class="note" id="gpsMsg" hidden></p>
-    <div class="fl">Endereço ou CEP
-      <div class="searchrow">
-        <input id="loc_addr" placeholder="Ex.: Rua Tal, 120, Itaquaquecetuba ou 08570-000" autocomplete="street-address">
-        <button type="button" class="btn" id="loc_find">Localizar</button>
-      </div>
+    <h2>Localização</h2>
+    <div class="searchrow">
+      <input id="loc_addr" placeholder="Endereço ou CEP" aria-label="Endereço ou CEP" autocomplete="street-address">
+      <button type="button" class="btn" id="loc_find">Localizar</button>
     </div>
+    <p class="note" id="loc_hint" hidden></p>
     <div id="loc_res" class="locres" hidden></div>
-    <p class="note" id="loc_hint">Digite o endereço e toque em Localizar. O painel encontra as coordenadas sozinho.</p>
-
-    <label class="fl">Ou escolha uma cidade ou bairro<select id="loc_sel"></select></label>
-
+    <select id="loc_sel" aria-label="Cidade ou bairro"></select>
+    <button type="button" class="btn ghost sm gps" id="gpsBtn2" hidden>Usar a localização deste aparelho</button>
+    <p class="note" id="gpsMsg" hidden></p>
     <details id="loc_adv">
-      <summary>Colar coordenadas ou link do Google Maps</summary>
-      <div class="fg" style="margin-top:10px">
-        <label class="full">Coordenadas ou link<input id="loc_coord" placeholder="-23.4861, -46.3486 ou link do Maps" inputmode="decimal"></label>
+      <summary>Mais opções</summary>
+      <div class="adv">
+        <input id="loc_coord" placeholder="Coordenadas ou link do Google Maps" aria-label="Coordenadas ou link do Google Maps" inputmode="decimal">
+        <input id="loc_nome" placeholder="Nome do local (opcional)" aria-label="Nome deste local">
+        <a id="loc_gm" class="small" href="https://www.google.com/maps" target="_blank" rel="noopener">Abrir o Google Maps</a>
       </div>
-      <p class="note">No Google Maps, toque e segure no endereço. Depois copie os números que aparecem, ou o link da página, e cole aqui. <a id="loc_gm" href="https://www.google.com/maps" target="_blank" rel="noopener">Abrir o Google Maps</a></p>
     </details>
-    <label class="fl">Nome deste local<input id="loc_nome" placeholder="Ex.: Casa"></label>
     <p class="prazo bad" id="loc_err" hidden></p>
     <div class="row" style="justify-content:flex-end">
       <button type="button" class="btn ghost" data-close>Cancelar</button>
@@ -449,7 +451,7 @@ let tT; $('#fTxt').oninput=e=>{ clearTimeout(tT); tT=setTimeout(()=>{F.txt=e.tar
 $('#fFav').onchange=e=>{F.fav=e.target.checked; saveF(); renderRede();};
 document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>{F.view=b.dataset.view; saveF(); renderRede();});
 document.querySelectorAll('[data-sort]').forEach(b=>b.onclick=()=>{F.sort=b.dataset.sort; saveF(); renderRede();});
-function fillPlaces(){ const s=$('#loc_sel'); s.innerHTML=''; const groups={}; const o0=el('option',null,'— escolher —'); o0.value=''; s.append(o0);
+function fillPlaces(){ const s=$('#loc_sel'); s.innerHTML=''; const groups={}; const o0=el('option',null,'Ou escolha uma cidade ou bairro'); o0.value=''; s.append(o0);
   PLACES.forEach((p,i)=>{ if(!groups[p.g]){ groups[p.g]=document.createElement('optgroup'); groups[p.g].label=p.g; s.append(groups[p.g]); }
     const o=el('option',null,p.n); o.value=String(i); groups[p.g].append(o); });
   const o=el('option',null,'Endereço exato (coordenadas abaixo)'); o.value='custom'; s.append(o); }
@@ -480,7 +482,7 @@ $('#gpsBtn2').onclick=()=>useGPS(true);
 /* Arquivo baixado: busca pela internet (ViaCEP + OpenStreetMap). Dentro do Claude: estimativa do Claude. */
 const ONLINE=!(window.claude&&window.claude.use);
 if(!ONLINE){ window.claude.use('sample').then(f=>{ sampleFn=f; if(!f) noAuto(); }).catch(noAuto); }
-else { $('#loc_hint').textContent='Digite o endereço ou CEP e toque em Recalcular. A busca usa a internet (ViaCEP e OpenStreetMap).'; }
+
 async function getJSON(url){ const c=new AbortController(); const tm=setTimeout(()=>c.abort(),9000);
   try{ const r=await fetch(url,{signal:c.signal,headers:{'Accept':'application/json'}}); if(!r.ok) throw new Error('http '+r.status); return await r.json(); } finally{ clearTimeout(tm); } }
 const SPBOX=(la,lo)=>la<-19&&la>-26&&lo<-44&&lo>-54;
@@ -520,8 +522,8 @@ function mapsStep(url){ const a=el('a','btn sm',"Abrir no Google Maps"); a.href=
   showRes([el('b',null,'Abrimos o endereço no Google Maps'), el('span',null,'Se a aba não abriu, use o botão:'), a, ol]); }
 function showRes(html,err){ $('#loc_hint').hidden=true; const r=$('#loc_res'); r.className='locres'+(err?' err':''); r.innerHTML=''; r.append(...html); r.hidden=false; }
 $('#locBtn').onclick=()=>{ const L=getLoc();
-  found=null; nameDirty=false; $('#loc_res').hidden=true; $('#loc_hint').hidden=false; $('#loc_addr').value='';
-  $('#loc_sel').value=''; $('#loc_adv').open=false; $('#loc_coord').value=''; $('#loc_nome').value=''; $('#loc_nome').placeholder='Atual: '+L.nome;
+  found=null; nameDirty=false; $('#loc_res').hidden=true; $('#loc_addr').value='';
+  $('#loc_sel').value=''; $('#loc_adv').open=false; $('#loc_coord').value=''; $('#loc_nome').value='';
   $('#loc_err').hidden=true; $('#gpsMsg').hidden=true; $('#dlgLoc').showModal(); setTimeout(()=>$('#loc_addr').focus(),50); };
 $('#loc_nome').addEventListener('input',()=>{ nameDirty=!!$('#loc_nome').value.trim(); });
 $('#loc_addr').addEventListener('input',()=>{ found=null; $('#loc_res').hidden=true; $('#loc_err').hidden=true; if($('#loc_addr').value.trim()){ $('#loc_sel').value=''; $('#loc_coord').value=''; } });
