@@ -137,6 +137,8 @@ table.lt .btn.sm{margin-top:4px}
 .locbar .locacts{display:flex;gap:6px}
 .locbar .btn.sm{padding:2px 9px;font-size:.78rem}
 .locname{font-weight:700}
+.perfil{max-width:560px}
+.perfil .fl{display:flex;flex-direction:column;gap:4px;font-size:.85rem;color:var(--muted);font-weight:700}
 .near-side{display:flex;flex-direction:column;align-items:flex-end;justify-content:space-between;gap:8px}
 @media (max-width:640px){
   .tbl:has(table.rt){overflow:visible;background:none;border:0}
@@ -198,6 +200,7 @@ button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-vis
     <button role="tab" data-tab="rede">Rede<span class="tabn" id="n-rede"></span></button>
     <button role="tab" data-tab="agenda">Agenda<span class="tabn" id="n-agenda">0</span></button>
     <button role="tab" data-tab="protocolos">Protocolos<span class="tabn" id="n-prot">0</span></button>
+    <button role="tab" data-tab="perfil">Perfil</button>
   </nav>
 
   <div id="storeBanner" class="banner" hidden></div>
@@ -265,6 +268,22 @@ button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-vis
       <button class="btn sm" type="button" data-new="prot">+ Novo</button>
     </div>
     <div id="protList"></div>
+  </div>
+
+  <!-- PERFIL -->
+  <div class="panel" id="p-perfil" hidden>
+    <form id="fPerfil" class="box perfil">
+      <h2>Perfil</h2>
+      <p class="note">Esses dados vão nas mensagens do WhatsApp. O endereço pode virar o ponto de partida das distâncias.</p>
+      <label class="fl">Nome<input id="pf_nome" autocomplete="name" placeholder="Nome completo"></label>
+      <label class="fl">Endereço<input id="pf_end" autocomplete="street-address" placeholder="Rua, número, bairro, cidade ou CEP"></label>
+      <label class="fl">Celular (WhatsApp)<input id="pf_cel" type="tel" inputmode="tel" autocomplete="tel" placeholder="(11) 91234-5678"></label>
+      <div class="row between">
+        <button type="button" class="btn ghost sm" id="pf_usar">Usar endereço como ponto de partida</button>
+        <button type="submit" class="btn">Salvar</button>
+      </div>
+      <p class="note" id="pf_msg" hidden></p>
+    </form>
   </div>
 
   <footer>Fonte: guia médico da Garantia de Saúde (clínicas médicas, laboratórios e clínicas de imagem, hospitais e parceiros), gerado em 22/09/2026. Antes de agendar, confirme por telefone se o prestador atende o Garantido Ouro 100.</footer>
@@ -434,7 +453,7 @@ async function toggleFav(id){ const s=favSet(); s.has(id)?s.delete(id):s.add(id)
 /* ---------- tabs ---------- */
 let tab='inicio'; try{ tab=localStorage.getItem('gp_tab')||'inicio'; }catch(e){}
 function setTab(t){ tab=t; document.querySelectorAll('nav.tabs button').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===t));
-  ['inicio','rede','agenda','protocolos'].forEach(k=>$('#p-'+k).hidden=k!==t); try{localStorage.setItem('gp_tab',t);}catch(e){} }
+  ['inicio','rede','agenda','protocolos','perfil'].forEach(k=>$('#p-'+k).hidden=k!==t); try{localStorage.setItem('gp_tab',t);}catch(e){} }
 document.querySelectorAll('nav.tabs button').forEach(b=>b.onclick=()=>setTab(b.dataset.tab));
 
 /* ---------- rede ---------- */
@@ -460,6 +479,7 @@ function pillRow(box,items,key){
 }
 const EXAME=/Anatomia patológica|Anuscopia|Análises Clínicas|Audiometria|Colonoscopia|Colposcopia|Densitometria|Ecodoppler|Eletrocardiograma|Eletroencefalograma|Eletroneuromiografia|Endoscopia|Espirometria|Histeroscopia|Holter|Impedanciometria|MAPA|Mamografia|Manometria|Nasofibrolaringoscopia|Papanicolau|Prova de Função|Radiologia|Ressonância|Retossigmoidoscopia|Teste Ergométrico|Tomografia|Ultrassonografia|Urodinâmica|Urofluxometria|Vulvoscopia|pH-metria/i;
 const isExame=e=>EXAME.test(e);
+const sepOpt=txt=>{ const o=el('option',null,'— '+txt.toUpperCase()+' —'); o.disabled=true; o.value='__sep'; return o; };
 function fillEsp(){
   const s=$('#fEsp'); const pool=DATA.filter(r=>!F.tipo||r.tipo===F.tipo);
   let all=[...new Set(pool.flatMap(r=>r.esp))].sort((a,b)=>a.localeCompare(b,'pt'));
@@ -470,13 +490,13 @@ function fillEsp(){
   s.innerHTML=''; const o0=el('option',null,label); o0.value=''; s.append(o0);
   const cnt=e=>DATA.filter(r=>r.esp.includes(e)&&matches(r,'esp')).length;
   const groups=F.tipo==='cli'?[['',all]]:F.tipo==='lab'?[['',all]]:[['Especialidades e atendimentos',all.filter(e=>!isExame(e))],['Exames',all.filter(isExame)]];
-  for(const [g,list] of groups){ if(!list.length) continue; const box=g?document.createElement('optgroup'):s; if(g){ box.label=g; s.append(box); }
-    list.forEach(e=>{ const o=el('option',null,e+' ('+cnt(e)+')'); o.value=e; box.append(o); }); }
+  for(const [g,list] of groups){ if(!list.length) continue; if(g) s.append(sepOpt(g));
+    list.forEach(e=>{ const o=el('option',null,e+' ('+cnt(e)+')'); o.value=e; s.append(o); }); }
   s.value=F.esp; s.setAttribute('aria-label',label.replace(/^Tod[ao]s? (as |os )?/,''));
 }
 $('#fReg').onchange=e=>{F.reg=e.target.value; saveF(); renderRede();};
 $('#fTipo').onchange=e=>{F.tipo=e.target.value; F.esp=''; saveF(); renderRede();};
-$('#fEsp').onchange=e=>{F.esp=e.target.value; saveF(); renderRede();};
+$('#fEsp').onchange=e=>{F.esp=e.target.value==='__sep'?'':e.target.value; saveF(); renderRede();};
 let tT; $('#fTxt').oninput=e=>{ clearTimeout(tT); tT=setTimeout(()=>{F.txt=e.target.value.trim(); saveF(); renderRede();},180); };
 $('#fFav').onchange=e=>{F.fav=e.target.checked; saveF(); renderRede();};
 document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>{F.view=b.dataset.view; saveF(); renderRede();});
@@ -739,29 +759,29 @@ const nowHM=()=>{ const d=new Date(); return String(d.getHours()).padStart(2,'0'
 const OUTRO='__outro';
 function fillEspSel(){ const s=$('#ag_esp_sel'); s.innerHTML=''; const o0=el('option',null,'Escolha...'); o0.value=''; s.append(o0);
   const all=[...new Set(DATA.flatMap(r=>r.esp))].sort((a,b)=>a.localeCompare(b,'pt'));
-  [['Especialidades e atendimentos',all.filter(e=>!isExame(e))],['Exames',all.filter(isExame)]].forEach(([g,l])=>{ const og=document.createElement('optgroup'); og.label=g; l.forEach(e=>{ const o=el('option',null,e); o.value=e; og.append(o); }); s.append(og); });
+  [['Especialidades e atendimentos',all.filter(e=>!isExame(e))],['Exames',all.filter(isExame)]].forEach(([g,l])=>{ s.append(sepOpt(g)); l.forEach(e=>{ const o=el('option',null,e); o.value=e; s.append(o); }); });
   const ot=el('option',null,'Outro (digitar)'); ot.value=OUTRO; s.append(ot); }
 function fillPrestSel(esp,keep){ const s=$('#ag_prest_sel'); s.innerHTML=''; const o0=el('option',null,'Escolha...'); o0.value=''; s.append(o0);
   const list=DATA.filter(r=>!esp||r.esp.includes(esp)).sort((a,b)=>km(a)-km(b));
-  const og=document.createElement('optgroup'); og.label=esp?('Com '+esp+' — mais perto primeiro'):'Mais perto primeiro';
-  list.forEach(r=>{ const o=el('option',null,r.nome+' — '+r.bairro+' ('+kmTxt(r)+')'); o.value=r.nome+' — '+r.bairro; og.append(o); }); s.append(og);
+  s.append(sepOpt('Mais perto primeiro'));
+  list.forEach(r=>{ const o=el('option',null,r.nome+' — '+r.bairro+' ('+kmTxt(r)+')'); o.value=r.nome+' — '+r.bairro; s.append(o); });
   const ot=el('option',null,'Outro (digitar)'); ot.value=OUTRO; s.append(ot);
   setSel(s,$('#ag_prest'),keep); }
 function setSel(s,inp,val){ val=val||''; const has=[...s.options].some(o=>o.value===val&&val!==OUTRO);
   if(!val){ s.value=''; inp.hidden=true; inp.value=''; } else if(has){ s.value=val; inp.hidden=true; inp.value=val; } else { s.value=OUTRO; inp.hidden=false; inp.value=val; } }
-$('#ag_esp_sel').addEventListener('change',()=>{ const v=$('#ag_esp_sel').value, inp=$('#ag_esp');
+$('#ag_esp_sel').addEventListener('change',()=>{ if($('#ag_esp_sel').value==='__sep') $('#ag_esp_sel').value=''; const v=$('#ag_esp_sel').value, inp=$('#ag_esp');
   if(v===OUTRO){ inp.hidden=false; inp.value=''; inp.focus(); } else { inp.hidden=true; inp.value=v; }
   const e=inp.value; if(e===CG||/^(Pediatria|Ginecologia|Cirurgia geral)$/.test(e)) $('#ag_prazo').value='7'; else if(/Análises clínicas|Papanicolau/i.test(e)) $('#ag_prazo').value='3'; else if(isExame(e)) $('#ag_prazo').value='10'; else if(e) $('#ag_prazo').value='14';
   if(e&&isExame(e)) $('#ag_tipo').value='Exame';
   fillPrestSel(v===OUTRO?'':v, $('#ag_prest').value); });
-$('#ag_prest_sel').addEventListener('change',()=>{ const v=$('#ag_prest_sel').value, inp=$('#ag_prest');
+$('#ag_prest_sel').addEventListener('change',()=>{ if($('#ag_prest_sel').value==='__sep') $('#ag_prest_sel').value=''; const v=$('#ag_prest_sel').value, inp=$('#ag_prest');
   if(v===OUTRO){ inp.hidden=false; inp.value=''; inp.focus(); } else { inp.hidden=true; inp.value=v; } });
 function openAg(a,pre){
   agEdit=a?a.id:null; const v=a||Object.assign({tipo:'Consulta',status:'pedido',prazo:'14',pedido:today()},pre||{});
   $('#agTitle').textContent=a?'Editar compromisso':'Nova consulta ou exame';
   $('#ag_tipo').value=v.tipo||'Consulta'; $('#ag_status').value=v.status||'pedido'; fillEspSel(); setSel($('#ag_esp_sel'),$('#ag_esp'),v.esp); fillPrestSel(DATA.some(r=>r.esp.includes(v.esp))?v.esp:'', v.prest);
   $('#ag_prazo').value=String(v.prazo??'14'); $('#ag_pedido').value=v.pedido||''; $('#ag_data').value=v.data||''; $('#ag_hora').value=v.hora||nowHM();
-  $('#ag_prot').value=v.prot||''; $('#ag_obs').value=v.obs||''; try{ const w=JSON.parse(localStorage.getItem('gp_wa')||'{}'); $('#ag_wa').checked=w.on!==false; $('#ag_wanum').value=w.num||''; }catch(e){} $('#agDel').hidden=!a; $('#dlgAg').showModal();
+  $('#ag_prot').value=v.prot||''; $('#ag_obs').value=v.obs||''; try{ const w=JSON.parse(localStorage.getItem('gp_wa')||'{}'); $('#ag_wa').checked=w.on!==false; $('#ag_wanum').value=fmtCel(getPerfil().cel||w.num||''); }catch(e){} $('#agDel').hidden=!a; $('#dlgAg').showModal();
 }
 $('#ag_data').addEventListener('change',()=>{ if($('#ag_data').value&&$('#ag_status').value==='pedido') $('#ag_status').value='agendado'; });
 $('#fAg').onsubmit=async ev=>{ ev.preventDefault();
@@ -781,7 +801,7 @@ function waLink(a,num){
   const mq=(r?(r.end+', '+r.bairro+', '+r.cidade):(a.prest||'')).normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^\w\s,.-]/g,'').replace(/\s*,\s*/g,',').trim().replace(/\s+/g,'+');
   const maps='https://maps.google.com/?q='+mq;
   const L=[];
-  L.push('*'+(a.tipo||'Consulta')+(a.esp?' – '+a.esp:'')+'*');
+  L.push('*'+(a.tipo||'Consulta')+(a.esp?' – '+a.esp:'')+'*'); const P=getPerfil(); if(P.nome) L.push('👤 Paciente: '+P.nome);
   L.push(a.data?('📅 '+fmt(a.data)+(a.hora?' às '+a.hora:'')+' ('+DOW[pd(a.data).getDay()]+')'):'📅 Data ainda não marcada');
   L.push('Situação: '+(ST[a.status]||a.status));
   if(r){ L.push('🏥 '+r.nome); L.push('📍 '+q+(r.cep?', CEP '+r.cep:'')); if(r.tel) L.push('📞 '+r.tel); }
@@ -866,7 +886,20 @@ function renderInicio(){
     const b=el('button','btn ghost sm','Abrir'); b.type='button'; b.onclick=()=>openAg(a); it.append(b); W.append(it); });
 }
 
-function renderAll(){ renderInicio(); renderAgenda(); renderProt(); renderRede(); }
+const getPerfil=()=>Store.list('prefs').find(x=>x.id==='perfil')||{};
+const fmtCel=v=>{ const d=String(v||'').replace(/\D/g,'').replace(/^55(?=\d{10,11}$)/,''); if(d.length===11) return '('+d.slice(0,2)+') '+d.slice(2,7)+'-'+d.slice(7); if(d.length===10) return '('+d.slice(0,2)+') '+d.slice(2,6)+'-'+d.slice(6); return v||''; };
+function renderPerfil(){ const P=getPerfil();
+  [['pf_nome','nome'],['pf_end','end'],['pf_cel','cel']].forEach(([id,k])=>{ const i=$('#'+id); if(document.activeElement!==i&&!i.dataset.dirty) i.value=k==='cel'?fmtCel(P[k]):(P[k]||''); }); }
+['pf_nome','pf_end','pf_cel'].forEach(id=>$('#'+id).addEventListener('input',e=>e.target.dataset.dirty='1'));
+$('#pf_cel').addEventListener('blur',e=>{ e.target.value=fmtCel(e.target.value); });
+$('#fPerfil').onsubmit=async ev=>{ ev.preventDefault();
+  const o={nome:$('#pf_nome').value.trim(),end:$('#pf_end').value.trim(),cel:$('#pf_cel').value.replace(/\D/g,'')};
+  ['pf_nome','pf_end','pf_cel'].forEach(id=>delete $('#'+id).dataset.dirty);
+  await Store.save('prefs','perfil',o); const m=$('#pf_msg'); m.textContent='Perfil salvo.'; m.hidden=false; setTimeout(()=>m.hidden=true,3000); };
+$('#pf_usar').onclick=()=>{ const e=$('#pf_end').value.trim(); const m=$('#pf_msg');
+  if(!e){ m.textContent='Preencha o endereço primeiro.'; m.hidden=false; $('#pf_end').focus(); return; }
+  $('#locBtn').click(); $('#loc_addr').value=e; if(!nameDirty){ $('#loc_nome').value='Casa'; nameDirty=true; } $('#loc_find').click(); };
+function renderAll(){ renderPerfil(); renderInicio(); renderAgenda(); renderProt(); renderRede(); }
 document.querySelectorAll('[data-new]').forEach(b=>b.onclick=()=>b.dataset.new==='agenda'?openAg(null):openPr(null));
 document.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>b.closest('dialog').close());
 fillLists(); fillPlaces(); setTab(tab); Store.init();
