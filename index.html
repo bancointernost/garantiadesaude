@@ -137,6 +137,7 @@ table.lt .btn.sm{margin-top:4px}
 .locbar .locacts{display:flex;gap:6px}
 .locbar .btn.sm{padding:2px 9px;font-size:.78rem}
 .locname{font-weight:700}
+.near-side{display:flex;flex-direction:column;align-items:flex-end;justify-content:space-between;gap:8px}
 @media (max-width:640px){
   .tbl:has(table.rt){overflow:visible;background:none;border:0}
   table.rt thead{display:none}
@@ -151,6 +152,7 @@ table.lt .btn.sm{margin-top:4px}
 .stsel{width:auto;min-width:220px}
 .wabox{display:grid;grid-template-columns:auto 1fr;gap:8px;align-items:center;background:var(--ok-soft);border-radius:8px;padding:8px 10px}
 @media (max-width:520px){.wabox{grid-template-columns:1fr}}
+.fg .wabox label.chk{flex-direction:row;align-items:center;gap:8px;color:var(--ink);font-weight:700}
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:50;background:var(--ink);color:var(--bg);border-radius:10px;padding:10px 14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;max-width:calc(100vw - 32px);box-shadow:0 6px 24px rgba(0,0,0,.25)}
 .toast a{background:#25D366;color:#0b2e17;font-weight:700;border-radius:8px;padding:6px 12px;text-decoration:none}
 .toast button{background:none;border:0;color:inherit;font:inherit;cursor:pointer;opacity:.7}
@@ -274,8 +276,8 @@ button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-vis
     <div class="fg">
       <label>Tipo<select id="ag_tipo"><option>Consulta</option><option>Retorno</option><option>Exame</option><option>Procedimento</option></select></label>
       <label>Situação<select id="ag_status"><option value="pedido">Aguardando vaga</option><option value="agendado">Agendado</option><option value="realizado">Realizado</option><option value="cancelado">Cancelado</option></select></label>
-      <label class="full">Especialidade ou exame<input id="ag_esp" list="espList" required placeholder="Ex.: Geriatria"></label>
-      <label class="full">Prestador<input id="ag_prest" list="prestList" placeholder="Escolha da rede ou digite"></label>
+      <label class="full">Especialidade ou exame<select id="ag_esp_sel"></select><input id="ag_esp" placeholder="Digite a especialidade ou exame" hidden></label>
+      <label class="full">Prestador<select id="ag_prest_sel"></select><input id="ag_prest" placeholder="Digite o nome do prestador" hidden></label>
       <label>Prazo ANS<select id="ag_prazo"><option value="14">Especialidade (14 dias úteis)</option><option value="7">Consulta básica (7)</option><option value="3">Laboratório (3)</option><option value="10">Outros exames (10)</option><option value="0">Não se aplica</option></select></label>
       <label>Data do pedido ao plano<input type="date" id="ag_pedido"></label>
       <label>Data marcada<input type="date" id="ag_data"></label>
@@ -734,16 +736,36 @@ function fillLists(){
 }
 let agEdit=null;
 const nowHM=()=>{ const d=new Date(); return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'); };
+const OUTRO='__outro';
+function fillEspSel(){ const s=$('#ag_esp_sel'); s.innerHTML=''; const o0=el('option',null,'Escolha...'); o0.value=''; s.append(o0);
+  const all=[...new Set(DATA.flatMap(r=>r.esp))].sort((a,b)=>a.localeCompare(b,'pt'));
+  [['Especialidades e atendimentos',all.filter(e=>!isExame(e))],['Exames',all.filter(isExame)]].forEach(([g,l])=>{ const og=document.createElement('optgroup'); og.label=g; l.forEach(e=>{ const o=el('option',null,e); o.value=e; og.append(o); }); s.append(og); });
+  const ot=el('option',null,'Outro (digitar)'); ot.value=OUTRO; s.append(ot); }
+function fillPrestSel(esp,keep){ const s=$('#ag_prest_sel'); s.innerHTML=''; const o0=el('option',null,'Escolha...'); o0.value=''; s.append(o0);
+  const list=DATA.filter(r=>!esp||r.esp.includes(esp)).sort((a,b)=>km(a)-km(b));
+  const og=document.createElement('optgroup'); og.label=esp?('Com '+esp+' — mais perto primeiro'):'Mais perto primeiro';
+  list.forEach(r=>{ const o=el('option',null,r.nome+' — '+r.bairro+' ('+kmTxt(r)+')'); o.value=r.nome+' — '+r.bairro; og.append(o); }); s.append(og);
+  const ot=el('option',null,'Outro (digitar)'); ot.value=OUTRO; s.append(ot);
+  setSel(s,$('#ag_prest'),keep); }
+function setSel(s,inp,val){ val=val||''; const has=[...s.options].some(o=>o.value===val&&val!==OUTRO);
+  if(!val){ s.value=''; inp.hidden=true; inp.value=''; } else if(has){ s.value=val; inp.hidden=true; inp.value=val; } else { s.value=OUTRO; inp.hidden=false; inp.value=val; } }
+$('#ag_esp_sel').addEventListener('change',()=>{ const v=$('#ag_esp_sel').value, inp=$('#ag_esp');
+  if(v===OUTRO){ inp.hidden=false; inp.value=''; inp.focus(); } else { inp.hidden=true; inp.value=v; }
+  const e=inp.value; if(e===CG||/^(Pediatria|Ginecologia|Cirurgia geral)$/.test(e)) $('#ag_prazo').value='7'; else if(/Análises clínicas|Papanicolau/i.test(e)) $('#ag_prazo').value='3'; else if(isExame(e)) $('#ag_prazo').value='10'; else if(e) $('#ag_prazo').value='14';
+  if(e&&isExame(e)) $('#ag_tipo').value='Exame';
+  fillPrestSel(v===OUTRO?'':v, $('#ag_prest').value); });
+$('#ag_prest_sel').addEventListener('change',()=>{ const v=$('#ag_prest_sel').value, inp=$('#ag_prest');
+  if(v===OUTRO){ inp.hidden=false; inp.value=''; inp.focus(); } else { inp.hidden=true; inp.value=v; } });
 function openAg(a,pre){
   agEdit=a?a.id:null; const v=a||Object.assign({tipo:'Consulta',status:'pedido',prazo:'14',pedido:today()},pre||{});
   $('#agTitle').textContent=a?'Editar compromisso':'Nova consulta ou exame';
-  $('#ag_tipo').value=v.tipo||'Consulta'; $('#ag_status').value=v.status||'pedido'; $('#ag_esp').value=v.esp||''; $('#ag_prest').value=v.prest||'';
+  $('#ag_tipo').value=v.tipo||'Consulta'; $('#ag_status').value=v.status||'pedido'; fillEspSel(); setSel($('#ag_esp_sel'),$('#ag_esp'),v.esp); fillPrestSel(DATA.some(r=>r.esp.includes(v.esp))?v.esp:'', v.prest);
   $('#ag_prazo').value=String(v.prazo??'14'); $('#ag_pedido').value=v.pedido||''; $('#ag_data').value=v.data||''; $('#ag_hora').value=v.hora||nowHM();
   $('#ag_prot').value=v.prot||''; $('#ag_obs').value=v.obs||''; try{ const w=JSON.parse(localStorage.getItem('gp_wa')||'{}'); $('#ag_wa').checked=w.on!==false; $('#ag_wanum').value=w.num||''; }catch(e){} $('#agDel').hidden=!a; $('#dlgAg').showModal();
 }
-$('#ag_esp').addEventListener('change',()=>{ const e=$('#ag_esp').value; if(e===CG||/^(Pediatria|Ginecologia|Cirurgia geral)$/.test(e)) $('#ag_prazo').value='7'; else if(/Análises clínicas|Papanicolau/i.test(e)) $('#ag_prazo').value='3'; });
 $('#ag_data').addEventListener('change',()=>{ if($('#ag_data').value&&$('#ag_status').value==='pedido') $('#ag_status').value='agendado'; });
 $('#fAg').onsubmit=async ev=>{ ev.preventDefault();
+  if(!$('#ag_esp').value.trim()){ const s=$('#ag_esp_sel'); (s.value===OUTRO?$('#ag_esp'):s).focus(); s.setCustomValidity('Escolha a especialidade ou exame'); s.reportValidity(); setTimeout(()=>s.setCustomValidity(''),2000); return; }
   const o={tipo:$('#ag_tipo').value,status:$('#ag_status').value,esp:$('#ag_esp').value.trim(),prest:$('#ag_prest').value.trim(),prazo:$('#ag_prazo').value,
     pedido:$('#ag_pedido').value,data:$('#ag_data').value,hora:$('#ag_hora').value,prot:$('#ag_prot').value.trim(),obs:$('#ag_obs').value.trim(),atualizado:new Date().toISOString()};
   const sendWa=$('#ag_wa').checked, num=$('#ag_wanum').value.replace(/\D/g,'');
@@ -756,7 +778,8 @@ function provOf(txt){ const s=norm(txt||''); if(!s) return null; return DATA.fin
 const DOW=['domingo','segunda-feira','terça-feira','quarta-feira','quinta-feira','sexta-feira','sábado'];
 function waLink(a,num){
   const r=provOf(a.prest); const q=r?(r.end+', '+r.bairro+', '+r.cidade+' - SP'):(a.prest||'');
-  const maps='https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(q);
+  const mq=(r?(r.end+', '+r.bairro+', '+r.cidade):(a.prest||'')).normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^\w\s,.-]/g,'').replace(/\s*,\s*/g,',').trim().replace(/\s+/g,'+');
+  const maps='https://maps.google.com/?q='+mq;
   const L=[];
   L.push('*'+(a.tipo||'Consulta')+(a.esp?' – '+a.esp:'')+'*');
   L.push(a.data?('📅 '+fmt(a.data)+(a.hora?' às '+a.hora:'')+' ('+DOW[pd(a.data).getDay()]+')'):'📅 Data ainda não marcada');
@@ -815,7 +838,11 @@ function renderNear(){
   cats.forEach(([n,f])=>{ const r=DATA.filter(f).sort((a,b)=>km(a)-km(b))[0]; if(!r) return;
     const it=el('div','item'); const m=el('div'); m.style.flex='1';
     m.append(el('div','near-cat',n), el('b',null,r.nome)); m.append(el('div','muted small',r.bairro+' · '+r.cidade+(r.tel?' · '+r.tel:'')));
-    it.append(m, el('span','km',kmTxt(r))); N.append(it); });
+    const side=el('div','near-side'); side.append(el('span','km',kmTxt(r)));
+    const ag=el('button','btn ghost sm','Agendar'); ag.type='button';
+    ag.onclick=()=>{ const ex=n.startsWith('Exames'); const esp=n==='Exames de sangue'?'Análises clínicas':n==='Exames de imagem'?(r.esp.find(e=>/Tomografia|Ultrassonografia|Radiologia|Ressonância/i.test(e))||''):n==='Clínico geral'?CG:n==='Pronto-socorro'?(r.esp.find(e=>/^Pronto-socorro/.test(e))||'Pronto-socorro geral'):n;
+      openAg(null,{prest:r.nome+' — '+r.bairro,esp,tipo:ex?'Exame':'Consulta',prazo:n==='Exames de sangue'?'3':ex?'10':n==='Clínico geral'?'7':n==='Pronto-socorro'?'0':'14'}); };
+    side.append(ag); it.append(m, side); N.append(it); });
 }
 function renderInicio(){
   renderNear();
