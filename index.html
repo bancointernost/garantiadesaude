@@ -3,6 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0E6F62">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
 <title>Painel Garantido Ouro</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bitter:wght@600;700&display=swap">
@@ -165,6 +169,7 @@ table.lt .btn.sm{margin-top:4px}
 .fg .wabox label.chk{flex-direction:row;align-items:center;gap:8px;color:var(--ink);font-weight:700}
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:50;background:var(--ink);color:var(--bg);border-radius:10px;padding:10px 14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;max-width:calc(100vw - 32px);box-shadow:0 6px 24px rgba(0,0,0,.25)}
 .toast a{background:#25D366;color:#0b2e17;font-weight:700;border-radius:8px;padding:6px 12px;text-decoration:none}
+.toast a.cal{background:#E8F0FE;color:#1A56C4}
 .toast button{background:none;border:0;color:inherit;font:inherit;cursor:pointer;opacity:.7}
 dialog.dlg-sm{width:min(440px,calc(100vw - 32px))}
 dialog.dlg-sm form{padding:16px;gap:10px}
@@ -292,6 +297,16 @@ button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-vis
       </div>
       <p class="note" id="pf_msg" hidden></p>
     </form>
+    <div class="box perfil">
+      <h2>Backup</h2>
+      <p class="note" id="bk_note">Salve uma cópia da agenda, dos protocolos, favoritos e perfil. Use para não perder nada ou para levar os dados para outro aparelho.</p>
+      <div class="row">
+        <button type="button" class="btn sm" id="bk_exp">Salvar backup</button>
+        <label class="btn ghost sm" for="bk_file" style="cursor:pointer">Restaurar backup</label>
+        <input type="file" id="bk_file" accept=".json,application/json" hidden>
+      </div>
+      <p class="note" id="bk_msg" hidden></p>
+    </div>
   </div>
 
   <div class="contatos" aria-label="Telefones do plano">
@@ -684,7 +699,7 @@ function listTable(items,fav){
     if(!ord.length) es.append(el('span','none','Não informadas'));
     else { const txt=el('span',null,ord.length>4?short:full); es.append(txt);
       if(ord.length>4){ const m=el('button','more','+'+(ord.length-4)+' mais'); m.type='button'; m.onclick=()=>{txt.textContent=full; m.remove();}; es.append(' ',m); } }
-    const a=el('td'); const ag=el('button','btn ghost sm','Agendar'); ag.type='button'; ag.onclick=()=>agendarDe(r); a.append(ag);
+    const a=el('td'); const ag=el('button','btn ghost sm','Agendar'); ag.type='button'; ag.onclick=()=>agendarDe(r); a.append(ag,' ',routeLink(r));
     tr.append(s,n,b,tl,es,a); tb.append(tr); });
   t.append(tb); w.append(t); return w;
 }
@@ -702,7 +717,7 @@ function card(r,fav){
   if(r.tel){ const cp=el('button','btn ghost sm','Copiar'); cp.type='button';
     cp.onclick=async()=>{ try{ await navigator.clipboard.writeText(r.tel); cp.textContent='Copiado'; }catch(e){ const s=getSelection(),rg=document.createRange(); rg.selectNodeContents(sp); s.removeAllRanges(); s.addRange(rg); cp.textContent='Selecionado'; } setTimeout(()=>cp.textContent='Copiar',1500); };
     tl.append(cp); }
-  const ag=el('button','btn ghost sm','Agendar'); ag.type='button'; ag.onclick=()=>openAg(null,{prest:r.nome+' — '+r.bairro,esp:F.esp||(ger?'Geriatria':''),tipo:r.tipo==='lab'?'Exame':'Consulta',prazo:r.tipo==='lab'?'10':'14'}); tl.append(ag);
+  const ag=el('button','btn ghost sm','Agendar'); ag.type='button'; ag.onclick=()=>openAg(null,{prest:r.nome+' — '+r.bairro,esp:F.esp||(ger?'Geriatria':''),tipo:r.tipo==='lab'?'Exame':'Consulta',prazo:r.tipo==='lab'?'10':'14'}); tl.append(ag, routeLink(r));
   c.append(tl);
   const ch=el('div','chips');
   if(!r.esp.length) ch.append(el('span','none','Especialidades não informadas no guia'));
@@ -758,7 +773,7 @@ function renderAgenda(){
       const e=el('td','c-e'); e.append(el('b',null,a.esp||'—')); e.append(el('div','muted small',a.tipo+(a.prot?' · prot. '+a.prot:'')));
       const p=el('td','c-p',a.prest||'—'); if(a.obs){ p.append(el('div','muted small',a.obs)); }
       const s=el('td','c-s'); s.append(el('span','st '+a.status,ST[a.status]||a.status)); const pi=prazoInfo(a); if(pi) s.append(el('span','prazo '+pi.cls,pi.txt));
-      const x=el('td','c-x'); const b=el('button','btn ghost sm','Editar'); b.type='button'; b.onclick=()=>openAg(a); x.append(b);
+      const x=el('td','c-x'); const b=el('button','btn ghost sm','Editar'); b.type='button'; b.onclick=()=>openAg(a); x.append(b); if(a.data&&a.status==='agendado'){ x.append(' ',calLink(a)); }
       tr.append(d,e,p,s,x); tb.append(tr); });
     t.append(tb); w.append(t); L.append(w);
   }
@@ -807,7 +822,7 @@ $('#fAg').onsubmit=async ev=>{ ev.preventDefault();
   const url=sendWa?waLink(o,num):null; let opened=null;
   if(url&&ONLINE){ try{ opened=window.open(url,'_blank','noopener'); }catch(e){} }
   $('#dlgAg').close(); await Store.save('agenda',agEdit||Store.newId(),o);
-  showToast('Agendamento salvo.', url, !!opened); };
+  showToast('Agendamento salvo.', url, !!opened, o.data&&o.status==='agendado'?o:null); };
 function provOf(txt){ const s=norm(txt||''); if(!s) return null; return DATA.find(r=>s===norm(r.nome+' — '+r.bairro))||DATA.find(r=>s.startsWith(norm(r.nome)))||null; }
 const DOW=['domingo','segunda-feira','terça-feira','quarta-feira','quinta-feira','sexta-feira','sábado'];
 function waLink(a,num){
@@ -827,10 +842,21 @@ function waLink(a,num){
   return 'https://wa.me/'+(n||'')+'?text='+encodeURIComponent(L.join('\n'));
 }
 let toastT;
-function showToast(msg,url,opened){ const b=$('#toast'); b.innerHTML=''; b.append(el('span',null,msg+(url&&opened?' WhatsApp aberto.':'')));
+function routeLink(r){ const L=getLoc(); const dest=(r.end+', '+r.bairro+', '+r.cidade+' - SP').normalize('NFD').replace(/[̀-ͯ]/g,'');
+  const a=el('a','btn ghost sm','Como chegar'); a.href='https://www.google.com/maps/dir/?api=1&origin='+L.lat+','+L.lon+'&destination='+encodeURIComponent(dest)+'&travelmode=transit'; a.target='_blank'; a.rel='noopener'; return a; }
+function calLink(a,toast){ const r=provOf(a.prest); const d=a.data.replace(/-/g,'');
+  const hh=x=>String(x).padStart(2,'0'); const stamp=x=>x.getFullYear()+hh(x.getMonth()+1)+hh(x.getDate())+'T'+hh(x.getHours())+hh(x.getMinutes())+'00';
+  let dates; if(a.hora){ const [h,m]=a.hora.split(':').map(Number); const s0=pd(a.data); s0.setHours(h,m,0,0); const e0=new Date(s0.getTime()+3600000); dates=stamp(s0)+'/'+stamp(e0); }
+  else { const n=pd(a.data); n.setDate(n.getDate()+1); dates=d+'/'+iso(n).replace(/-/g,''); }
+  const P=getPerfil(); const det=[(a.tipo||'Consulta')+(P.nome?' – '+P.nome:''), r&&r.tel?'Tel.: '+r.tel:'', a.prot?'Protocolo/guia: '+a.prot:'', a.obs?'Obs.: '+a.obs:''].filter(Boolean).join('\n');
+  const u='https://calendar.google.com/calendar/render?action=TEMPLATE&text='+encodeURIComponent((a.esp||a.tipo||'Consulta')+(r?' – '+r.nome:''))
+    +'&dates='+dates+'&ctz=America/Sao_Paulo&details='+encodeURIComponent(det)+'&location='+encodeURIComponent(r?(r.end+', '+r.bairro+', '+r.cidade+' - SP'):(a.prest||''));
+  const l=el('a',toast?'cal':'btn ghost sm',toast?'Adicionar ao calendário':'Calendário'); l.href=u; l.target='_blank'; l.rel='noopener'; return l; }
+function showToast(msg,url,opened,cal){ const b=$('#toast'); b.innerHTML=''; b.append(el('span',null,msg+(url&&opened?' WhatsApp aberto.':'')));
+  if(cal){ const c=calLink(cal,true); c.onclick=()=>setTimeout(()=>b.hidden=true,300); b.append(c); }
   if(url){ const a=el('a',null,opened?'Abrir de novo':'Enviar pelo WhatsApp'); a.href=url; a.target='_blank'; a.rel='noopener'; a.onclick=()=>setTimeout(()=>b.hidden=true,300); b.append(a); }
   const x=el('button',null,'Fechar'); x.type='button'; x.onclick=()=>b.hidden=true; b.append(x);
-  b.hidden=false; clearTimeout(toastT); toastT=setTimeout(()=>b.hidden=true,url?30000:4000); }
+  b.hidden=false; clearTimeout(toastT); toastT=setTimeout(()=>b.hidden=true,(url||cal)?30000:4000); }
 let agDelArm=false;
 $('#agDel').onclick=async()=>{ if(!agDelArm){ agDelArm=true; $('#agDel').textContent='Confirmar exclusão'; setTimeout(()=>{agDelArm=false; $('#agDel').textContent='Excluir';},3000); return; }
   agDelArm=false; $('#agDel').textContent='Excluir'; $('#dlgAg').close(); await Store.remove('agenda',agEdit); };
@@ -943,10 +969,28 @@ $('#pf_usar').onclick=async()=>{ const e=$('#pf_end').value.trim(); const m=$('#
   if(e&&P.geoEnd===e&&typeof P.lat==='number'){ await applyHome(P); m.textContent='Ponto de partida: '+homeName(P)+'.'; m.hidden=false; return; }
   if(!e){ m.textContent='Preencha o endereço primeiro.'; m.hidden=false; $('#pf_end').focus(); return; }
   $('#locBtn').click(); $('#loc_addr').value=e; if(!nameDirty){ $('#loc_nome').value='Casa'; nameDirty=true; } $('#loc_find').click(); };
+function bkMsg(m,err){ const e=$('#bk_msg'); e.textContent=m; e.className='note'+(err?' prazo bad':''); e.hidden=false; }
+function bkData(){ return {app:'painel-garantido-ouro',versao:1,exportado:new Date().toISOString(),agenda:Store.list('agenda'),protocolos:Store.list('protocolos'),prefs:Store.list('prefs')}; }
+$('#bk_exp').onclick=async()=>{ const txt=JSON.stringify(bkData(),null,1); const name='backup-plano-'+today()+'.json';
+  if(ONLINE){ const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([txt],{type:'application/json'})); a.download=name; document.body.append(a); a.click(); setTimeout(()=>{URL.revokeObjectURL(a.href); a.remove();},1000); bkMsg('Backup salvo em Downloads: '+name); return; }
+  try{ const dl=await window.claude.use('downloads'); if(!dl) throw 0; await dl.save({filename:name,data:txt}); bkMsg('Backup salvo: '+name); }
+  catch(e){ try{ await navigator.clipboard.writeText(txt); bkMsg('Não deu para baixar aqui. O backup foi copiado: cole num bloco de notas e salve.'); }catch(e2){ bkMsg('Não foi possível salvar o backup nesta tela. Use o arquivo baixado do painel.',true); } } };
+let bkPending=null;
+$('#bk_file').onchange=async e=>{ const f=e.target.files[0]; e.target.value=''; if(!f) return;
+  try{ const d=JSON.parse(await f.text()); if(!d||d.app!=='painel-garantido-ouro') throw 0;
+    const n=(d.agenda||[]).length, p=(d.protocolos||[]).length;
+    bkPending=d; const m=$('#bk_msg'); m.innerHTML=''; m.className='note'; m.append('Backup de '+(d.exportado?new Date(d.exportado).toLocaleDateString('pt-BR'):'data desconhecida')+': '+n+' compromisso(s) e '+p+' protocolo(s). Os itens com o mesmo registro serão substituídos. ');
+    const ok=el('button','btn sm','Restaurar agora'); ok.type='button'; ok.onclick=restoreBk; const no=el('button','btn ghost sm','Cancelar'); no.type='button'; no.onclick=()=>{bkPending=null; m.hidden=true;};
+    m.append(ok,' ',no); m.hidden=false; }
+  catch(err){ bkMsg('Esse arquivo não é um backup do painel.',true); } };
+async function restoreBk(){ const d=bkPending; if(!d) return; bkPending=null; let c=0;
+  for(const col of ['agenda','protocolos','prefs']) for(const it of (d[col]||[])){ if(!it||!it.id) continue; const {id,...rest}=it; await Store.save(col,String(id),rest); c++; }
+  autoLocDone=false; autoLoc(); bkMsg('Backup restaurado: '+c+' registro(s).'); }
 function renderAll(){ renderPerfil(); renderInicio(); renderAgenda(); renderProt(); renderRede(); }
 document.querySelectorAll('[data-new]').forEach(b=>b.onclick=()=>b.dataset.new==='agenda'?openAg(null):openPr(null));
 document.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>b.closest('dialog').close());
 fillLists(); fillPlaces(); setTab(tab); Store.init();
+if(ONLINE&&'serviceWorker' in navigator&&/^https?:$/.test(location.protocol)&&document.querySelector('link[rel=manifest]')){ navigator.serviceWorker.register('sw.js').catch(()=>{}); }
 </script>
 
 </body>
