@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Painel Garantido Ouro</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bitter:wght@600;700&display=swap">
+<style>
+:root{
+  --bg:#F3F6F5; --surface:#FFFFFF; --ink:#16272B; --muted:#5A6B6E; --line:#D9E2E0;
+  --accent:#0E6F62; --accent-ink:#FFFFFF; --accent-soft:#E0F0EC; --warm:#9A5B0B; --warm-soft:#FBEFD9;
+  --bad:#B42318; --bad-soft:#FDE8E6; --ok:#1F7A3A; --ok-soft:#E3F3E7; --chip:#EEF2F1;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#0F1719; --surface:#172225; --ink:#E4ECEA; --muted:#9AAEAB; --line:#2A3A3D;
+    --accent:#5CC4B2; --accent-ink:#0F1719; --accent-soft:#16352F; --warm:#F0B55A; --warm-soft:#3A2A10;
+    --bad:#FF8A7A; --bad-soft:#3D1814; --ok:#7BD58F; --ok-soft:#15301C; --chip:#1F2D30;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#0F1719; --surface:#172225; --ink:#E4ECEA; --muted:#9AAEAB; --line:#2A3A3D;
+  --accent:#5CC4B2; --accent-ink:#0F1719; --accent-soft:#16352F; --warm:#F0B55A; --warm-soft:#3A2A10;
+  --bad:#FF8A7A; --bad-soft:#3D1814; --ok:#7BD58F; --ok-soft:#15301C; --chip:#1F2D30;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font:16px/1.5 "Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",sans-serif;padding-inline:16px;padding-block:20px 56px}
+.wrap{max-width:1000px;margin:0 auto;display:flex;flex-direction:column;gap:20px}
+h1,h2,h3{font-family:Bitter,Georgia,serif;margin:0;text-wrap:balance;line-height:1.2}
+h1{font-size:clamp(1.5rem,4vw,2rem)}
+h2{font-size:1.2rem}
+h3{font-size:1rem;font-family:inherit}
+p{margin:0}
+.eyebrow{font-size:.76rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);font-weight:700}
+.muted{color:var(--muted)}
+.small{font-size:.86rem}
+header .lede{color:var(--muted);margin-top:4px;max-width:65ch}
+nav.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);overflow-x:auto;position:sticky;top:env(safe-area-inset-top,0px);background:var(--bg);z-index:3}
+nav.tabs button{font:inherit;font-weight:700;background:none;border:0;border-bottom:3px solid transparent;color:var(--muted);padding:10px 14px;cursor:pointer;white-space:nowrap}
+nav.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent)}
+.tabn{font-weight:400;font-size:.8rem;margin-left:4px;background:var(--chip);border-radius:999px;padding:1px 7px;font-variant-numeric:tabular-nums}
+.panel{display:flex;flex-direction:column;gap:18px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px}
+.box{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:10px}
+.box.warm{background:var(--warm-soft);border-color:color-mix(in srgb,var(--warm) 35%,transparent)}
+.box.warm h2{color:var(--warm)}
+.box ul{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.stat b{display:block;font-size:1.6rem;font-family:Bitter,Georgia,serif;font-variant-numeric:tabular-nums}
+.stat span{font-size:.84rem;color:var(--muted)}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.between{justify-content:space-between}
+.pill{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:5px 12px;font:inherit;font-size:.88rem;cursor:pointer}
+.pill[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.pill .n{opacity:.7;margin-left:4px;font-variant-numeric:tabular-nums}
+.btn{font:inherit;font-weight:700;border-radius:8px;border:1px solid var(--accent);background:var(--accent);color:var(--accent-ink);padding:8px 14px;cursor:pointer}
+.btn.ghost{background:transparent;color:var(--accent)}
+.btn.sm{padding:3px 10px;font-size:.82rem;font-weight:700}
+.btn.danger{border-color:var(--bad);color:var(--bad);background:transparent}
+input,select,textarea{font:inherit;font-size:.95rem;padding:7px 10px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink);max-width:100%;width:100%}
+textarea{min-height:70px;resize:vertical}
+.filters{display:flex;flex-direction:column;gap:10px;background:var(--bg);padding-block:6px}
+.frow{display:grid;grid-template-columns:2fr 2fr auto;gap:8px;align-items:center}
+@media (max-width:640px){.frow{grid-template-columns:1fr}}
+.chk{display:flex;gap:6px;align-items:center;font-size:.9rem;white-space:nowrap}
+.chk input{width:auto}
+.count{font-size:.88rem;color:var(--muted);font-variant-numeric:tabular-nums}
+section.reg{display:flex;flex-direction:column;gap:10px}
+.reg-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;border-bottom:2px solid var(--ink);padding-bottom:5px}
+.reg-head small{color:var(--muted);font-size:.85rem}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:10px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:12px 14px;display:flex;flex-direction:column;gap:7px}
+.card.ger{border-color:var(--warm);box-shadow:inset 4px 0 0 var(--warm)}
+.card-top{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
+.card h3{font-size:.95rem;line-height:1.3}
+.star{background:none;border:0;font-size:1.25rem;line-height:1;cursor:pointer;color:var(--muted);padding:0 2px}
+.star[aria-pressed="true"]{color:var(--warm)}
+.tag{font-size:.7rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+.addr{font-size:.88rem;color:var(--muted)}
+.addr b{color:var(--ink)}
+.tel{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:.88rem;font-variant-numeric:tabular-nums}
+.chips{display:flex;flex-wrap:wrap;gap:4px}
+.chip{font-size:.74rem;background:var(--chip);border-radius:4px;padding:2px 7px}
+.chip.hl{background:var(--accent-soft);color:var(--accent);font-weight:700}
+.chip.g{background:var(--warm-soft);color:var(--warm);font-weight:700}
+.more{background:none;border:0;color:var(--accent);font:inherit;font-size:.78rem;cursor:pointer;padding:2px 4px}
+.none{font-size:.8rem;color:var(--muted);font-style:italic}
+.empty{color:var(--muted);padding:18px;text-align:center;border:1px dashed var(--line);border-radius:10px}
+table{border-collapse:collapse;width:100%;font-size:.9rem}
+.tbl{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:10px}
+th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:.76rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:700;white-space:nowrap}
+tr:last-child td{border-bottom:0}
+td.num{font-variant-numeric:tabular-nums;white-space:nowrap}
+.st{display:inline-block;font-size:.76rem;font-weight:700;border-radius:999px;padding:2px 9px;white-space:nowrap}
+.st.pedido{background:var(--warm-soft);color:var(--warm)}
+.st.agendado{background:var(--accent-soft);color:var(--accent)}
+.st.realizado{background:var(--ok-soft);color:var(--ok)}
+.st.cancelado{background:var(--chip);color:var(--muted)}
+.prazo{font-size:.8rem;display:block;margin-top:3px}
+.prazo.bad{color:var(--bad);font-weight:700}
+.prazo.warn{color:var(--warm);font-weight:700}
+.list{display:flex;flex-direction:column;gap:8px}
+.item{display:flex;justify-content:space-between;gap:10px;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px 12px;flex-wrap:wrap}
+.item .when{font-variant-numeric:tabular-nums;font-weight:700;min-width:92px}
+dialog{border:1px solid var(--line);border-radius:12px;background:var(--surface);color:var(--ink);padding:0;width:min(560px,calc(100vw - 32px))}
+dialog::backdrop{background:rgba(10,20,22,.45)}
+dialog form{padding:18px;display:flex;flex-direction:column;gap:12px}
+.fg{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media (max-width:520px){.fg{grid-template-columns:1fr}}
+.fg label,.fl{display:flex;flex-direction:column;gap:4px;font-size:.85rem;color:var(--muted);font-weight:700}
+.full{grid-column:1/-1}
+.note{font-size:.82rem;color:var(--muted)}
+.banner{font-size:.84rem;padding:8px 12px;border-radius:8px;background:var(--chip);color:var(--muted)}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.seg button{font:inherit;font-size:.86rem;font-weight:700;background:var(--surface);color:var(--muted);border:0;padding:5px 12px;cursor:pointer}
+.seg button+button{border-left:1px solid var(--line)}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+table.lt td{font-size:.86rem}
+table.lt td.num{white-space:normal;min-width:130px;max-width:190px}
+table.lt td:nth-child(2){min-width:180px}
+table.lt td.esp{min-width:220px;color:var(--muted)}
+table.lt tr.ger td:first-child{box-shadow:inset 4px 0 0 var(--warm)}
+table.lt .btn.sm{margin-top:4px}
+.locbar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;background:var(--accent-soft);border-radius:10px;padding:10px 14px}
+.locname{font-weight:700}
+.item .km{align-self:flex-start}
+.searchrow{display:flex;gap:8px}
+.searchrow input{flex:1;min-width:0}
+.searchrow .btn{white-space:nowrap}
+.locres{background:var(--accent-soft);border-radius:8px;padding:10px 12px;font-size:.9rem;display:flex;flex-direction:column;gap:4px}
+.locres.err{background:var(--bad-soft);color:var(--bad)}
+.locres a{color:var(--accent);font-weight:700}
+.km{font-size:.78rem;font-weight:700;color:var(--accent);background:var(--accent-soft);border-radius:999px;padding:1px 8px;white-space:nowrap;font-variant-numeric:tabular-nums}
+details summary{cursor:pointer;color:var(--accent);font-weight:700;font-size:.9rem}
+.near-cat{font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:700}
+footer{font-size:.8rem;color:var(--muted);border-top:1px solid var(--line);padding-top:12px}
+button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+</style>
+<style>body{margin:0}</style>
+</head>
+<body>
+
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Garantia de Saúde</div>
+    <h1>Plano Garantido Ouro 100</h1>
+    <p class="lede">Rede credenciada por região (clínicas, laboratórios e hospitais), agenda de consultas e exames com o prazo máximo da ANS, e registro de protocolos.</p>
+  </header>
+
+  <nav class="tabs" role="tablist">
+    <button role="tab" data-tab="inicio" aria-selected="true">Início</button>
+    <button role="tab" data-tab="rede">Rede<span class="tabn" id="n-rede"></span></button>
+    <button role="tab" data-tab="agenda">Agenda<span class="tabn" id="n-agenda">0</span></button>
+    <button role="tab" data-tab="protocolos">Protocolos<span class="tabn" id="n-prot">0</span></button>
+  </nav>
+
+  <div id="storeBanner" class="banner" hidden></div>
+
+  <div class="locbar">
+    <div><span class="tag">Ponto de partida</span><div class="locname" id="locName">Rua Ana Soares Barcelos (Vila Venditti, Guarulhos)</div></div>
+    <button class="btn ghost sm" type="button" id="locBtn">Alterar localização</button>
+  </div>
+
+  <!-- INÍCIO -->
+  <div class="panel" id="p-inicio">
+    <div class="stats" id="stats"></div>
+    <div class="grid2">
+      <div class="box">
+        <div class="row between"><h2>Próximos compromissos</h2><button class="btn sm" type="button" data-new="agenda">+ Novo</button></div>
+        <div class="list" id="nextList"></div>
+      </div>
+      <div class="box">
+        <h2>Aguardando vaga</h2>
+        <p class="note">Pedidos ainda sem data, com o prazo máximo da ANS (RN 566) contado a partir do dia do pedido.</p>
+        <div class="list" id="waitList"></div>
+      </div>
+    </div>
+    <div class="grid2">
+      <div class="box warm">
+        <h2>Geriatria: só 2 locais na rede</h2>
+        <ul>
+          <li><b>Vida Nova Saúde</b>, Santo Amaro (Zona Sul), (11) 5541-9700</li>
+          <li><b>O Dr Atende</b>, Lapa (Zona Oeste), (11) 3643-6770</li>
+        </ul>
+        <p class="small">Nenhum prestador da rede fica em Itaquaquecetuba ou no Alto Tietê.</p>
+      </div>
+      <div class="box">
+        <h2 id="nearTitle">Mais perto</h2>
+        <div class="list" id="nearList"></div>
+        <p class="note">Distância em linha reta, calculada pelo centro do bairro. O trajeto real costuma ser maior.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- REDE -->
+  <div class="panel" id="p-rede" hidden>
+    <div class="filters">
+      <div class="row" id="tipoPills" role="group" aria-label="Tipo de prestador"></div>
+      <div class="row" id="regPills" role="group" aria-label="Região"></div>
+      <div class="frow">
+        <select id="fEsp" aria-label="Especialidade ou exame"><option value="">Todas as especialidades e exames</option></select>
+        <input id="fTxt" type="search" placeholder="Buscar por nome, bairro ou rua" aria-label="Buscar">
+        <label class="chk"><input type="checkbox" id="fFav"> Só favoritos</label>
+      </div>
+      <div class="row between"><span class="count" id="count"></span>
+        <div class="row"><div class="seg" role="group" aria-label="Ordenar"><button type="button" data-sort="reg">Por região</button><button type="button" data-sort="dist">Por distância</button></div><div class="seg" role="group" aria-label="Modo de exibição"><button type="button" data-view="cards">Cartões</button><button type="button" data-view="lista">Lista</button></div></div></div>
+    </div>
+    <div id="redeList"></div>
+  </div>
+
+  <!-- AGENDA -->
+  <div class="panel" id="p-agenda" hidden>
+    <div class="row between">
+      <div class="row" id="stPills" role="group" aria-label="Situação"></div>
+      <button class="btn" type="button" data-new="agenda">+ Nova consulta ou exame</button>
+    </div>
+    <div id="agendaList"></div>
+    <p class="note">Prazos máximos da ANS em dias úteis: consulta básica (clínico geral, pediatria, ginecologia, cirurgia geral) 7 · demais especialidades, geriatria inclusive, 14 · exames de laboratório 3 · outros exames e procedimentos 10. A conta pula sábados e domingos, mas não feriados.</p>
+  </div>
+
+  <!-- PROTOCOLOS -->
+  <div class="panel" id="p-protocolos" hidden>
+    <div class="row between">
+      <p class="muted small">Anote toda ligação ao plano. A ANS pede o protocolo da operadora antes de abrir uma reclamação.</p>
+      <button class="btn" type="button" data-new="prot">+ Novo protocolo</button>
+    </div>
+    <div id="protList"></div>
+  </div>
+
+  <footer>Fonte: guia médico da Garantia de Saúde (clínicas médicas, laboratórios e clínicas de imagem, hospitais e parceiros), gerado em 22/09/2026. Antes de agendar, confirme por telefone se o prestador atende o Garantido Ouro 100.</footer>
+</div>
+
+<dialog id="dlgAg">
+  <form id="fAg">
+    <h2 id="agTitle">Nova consulta ou exame</h2>
+    <div class="fg">
+      <label>Tipo<select id="ag_tipo"><option>Consulta</option><option>Retorno</option><option>Exame</option><option>Procedimento</option></select></label>
+      <label>Situação<select id="ag_status"><option value="pedido">Aguardando vaga</option><option value="agendado">Agendado</option><option value="realizado">Realizado</option><option value="cancelado">Cancelado</option></select></label>
+      <label class="full">Especialidade ou exame<input id="ag_esp" list="espList" required placeholder="Ex.: Geriatria"></label>
+      <label class="full">Prestador<input id="ag_prest" list="prestList" placeholder="Escolha da rede ou digite"></label>
+      <label>Prazo ANS<select id="ag_prazo"><option value="14">Especialidade (14 dias úteis)</option><option value="7">Consulta básica (7)</option><option value="3">Laboratório (3)</option><option value="10">Outros exames (10)</option><option value="0">Não se aplica</option></select></label>
+      <label>Data do pedido ao plano<input type="date" id="ag_pedido"></label>
+      <label>Data marcada<input type="date" id="ag_data"></label>
+      <label>Horário<input type="time" id="ag_hora"></label>
+      <label class="full">Protocolo / nº da guia<input id="ag_prot"></label>
+      <label class="full">Observações<textarea id="ag_obs" placeholder="Levar exames anteriores, jejum, quem acompanha..."></textarea></label>
+    </div>
+    <div class="row between">
+      <button type="button" class="btn danger" id="agDel" hidden>Excluir</button>
+      <div class="row" style="margin-left:auto">
+        <button type="button" class="btn ghost" data-close>Cancelar</button>
+        <button type="submit" class="btn">Salvar</button>
+      </div>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="dlgPr">
+  <form id="fPr">
+    <h2 id="prTitle">Novo protocolo</h2>
+    <div class="fg">
+      <label>Data<input type="date" id="pr_data" required></label>
+      <label>Canal<select id="pr_canal"><option>Central do plano</option><option>Ouvidoria do plano</option><option>ANS</option><option>Procon</option><option>Clínica / prestador</option><option>Outro</option></select></label>
+      <label class="full">Número do protocolo<input id="pr_num"></label>
+      <label class="full">Assunto<input id="pr_ass" required placeholder="Ex.: Pedido de geriatra mais próximo de Itaquá"></label>
+      <label class="full">Resposta / próximos passos<textarea id="pr_resp"></textarea></label>
+      <label>Situação<select id="pr_st"><option value="aberto">Em aberto</option><option value="resolvido">Resolvido</option><option value="negado">Negado</option></select></label>
+      <label>Atendente<input id="pr_at"></label>
+    </div>
+    <div class="row between">
+      <button type="button" class="btn danger" id="prDel" hidden>Excluir</button>
+      <div class="row" style="margin-left:auto">
+        <button type="button" class="btn ghost" data-close>Cancelar</button>
+        <button type="submit" class="btn">Salvar</button>
+      </div>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="dlgLoc">
+  <form id="fLoc">
+    <h2>Definir localização</h2>
+    <div class="fl">Endereço ou CEP
+      <div class="searchrow">
+        <input id="loc_addr" placeholder="Ex.: Rua Tal, 120, Itaquaquecetuba ou 08570-000" autocomplete="street-address">
+        <button type="button" class="btn" id="loc_find">Localizar</button>
+      </div>
+    </div>
+    <div id="loc_res" class="locres" hidden></div>
+    <p class="note" id="loc_hint">Digite o endereço e toque em Localizar. O painel encontra as coordenadas sozinho.</p>
+
+    <label class="fl">Ou escolha uma cidade ou bairro<select id="loc_sel"></select></label>
+
+    <details id="loc_adv">
+      <summary>Colar coordenadas ou link do Google Maps</summary>
+      <div class="fg" style="margin-top:10px">
+        <label class="full">Coordenadas ou link<input id="loc_coord" placeholder="-23.4861, -46.3486 ou link do Maps" inputmode="decimal"></label>
+      </div>
+      <p class="note">No Google Maps, toque e segure no endereço. Depois copie os números que aparecem, ou o link da página, e cole aqui. <a id="loc_gm" href="https://www.google.com/maps" target="_blank" rel="noopener">Abrir o Google Maps</a></p>
+    </details>
+    <label class="fl">Nome deste local<input id="loc_nome" placeholder="Ex.: Casa"></label>
+    <p class="prazo bad" id="loc_err" hidden></p>
+    <div class="row" style="justify-content:flex-end">
+      <button type="button" class="btn ghost" data-close>Cancelar</button>
+      <button type="submit" class="btn">Recalcular</button>
+    </div>
+  </form>
+</dialog>
+
+<datalist id="espList"></datalist>
+<datalist id="prestList"></datalist>
+
+<script>
+const DATA = [{"tipo":"cli","nome":"AMAVITTA CLINICA DE ESPECIALIDADES","cnpj":"64.615.557","end":"Rua Amadeu Gamberini, 133","bairro":"Vila Americana","cidade":"São Paulo","cep":"08010-110","tel":"(11) 5178-4077 / 95198-3177","esp":["Psiquiatria","Pediatria","Otorrinolaringologia","Ortopedia","Neurologia","Ginecologia","Endocrinologia","Dermatologia","Clínica médica / clínico geral","Cardiologia"],"reg":"el","id":"cli0","lat":-23.497,"lon":-46.443},{"tipo":"cli","nome":"MAXI SAÚDE","cnpj":"18.195.999","end":"Rua da Aclimação, 68 - 5º Andar - Cj 51","bairro":"Aclimação","cidade":"São Paulo","cep":"01531-000","tel":"2495-0003","esp":["Eletroneuromiografia"],"reg":"ce","id":"cli1","lat":-23.572,"lon":-46.63},{"tipo":"cli","nome":"VLS- MEDICI","cnpj":"23.843.855","end":"Praça Amadeu Amaral, 27","bairro":"Bela Vista","cidade":"São Paulo","cep":"01327-010","tel":"(11) 2657-3015 / 99314-6519 / 99369-2028 / 2657-30","esp":["Urologia","Pediatria","Otorrinolaringologia","Ortopedia","Ginecologia","Endocrinologia","Dermatologia","Clínica médica / clínico geral","Cirurgia Vascular","Cardiologia","Angiologia"],"reg":"ce","id":"cli2","lat":-23.56,"lon":-46.645},{"tipo":"cli","nome":"CLINICA ORTOFIT","cnpj":"59.492.298.0001-47","end":"Rua Bom Sucesso, 253","bairro":"Tatuapé","cidade":"São Paulo","cep":"","tel":"(11) 2090.4839 / 2942.7432 / 99155-7150 WHATSAPP","esp":["Ortopedia"],"reg":"lc","id":"cli3","lat":-23.54,"lon":-46.576},{"tipo":"cli","nome":"CLINICA ENDOCAP","cnpj":"48.394.621","end":"Rua Arizona, 1349 - Cjs 12 a / B","bairro":"Cidade Monções","cidade":"São Paulo","cep":"04567-901","tel":"(11) 5091-9097 / 99609-9325 WHATSAPP","esp":["Nasofibrolaringoscopia"],"reg":"zs","id":"cli4","lat":-23.607,"lon":-46.688},{"tipo":"cli","nome":"POLICLINICA REAL","cnpj":"00.734.367.0001-39","end":"Rua Duarte de Azevedo, 426","bairro":"Santana","cidade":"São Paulo","cep":"02036-021","tel":"(11) 2979-0817 / 3938-3978","esp":["Angiologia","Cardiologia","Clínica médica / clínico geral","Dermatologia","Endocrinologia","Gastroenterologia","Ginecologia","Otorrinolaringologia","Pneumologia","Reumatologia","Urologia"],"reg":"zn","id":"cli5","lat":-23.5,"lon":-46.628},{"tipo":"cli","nome":"NUTRIÇÃO CARMONA","cnpj":"13.425.485.0001-07","end":"Rua Utrecht, 119","bairro":"Ponte Rasa","cidade":"São Paulo","cep":"","tel":"2041-4523 / 2041-1795","esp":["Nutrição"],"reg":"el","id":"cli6","lat":-23.508,"lon":-46.496},{"tipo":"cli","nome":"CLINICA MEDICA SOLER","cnpj":"96.411.335","end":"Av. Satélite, 84","bairro":"São Mateus","cidade":"São Paulo","cep":"08330-480","tel":"(11) 2014-4599 / 97665-7114 / 99124-7549","esp":["Urologia","Pediatria","Otorrinolaringologia","Ortopedia","Oftalmologia","Mastologia","Ginecologia","Gastroenterologia","Endocrinologia","Dermatologia","Clínica médica / clínico geral","Cardiologia","Angiologia","Alergologia"],"reg":"el","id":"cli7","lat":-23.608,"lon":-46.477},{"tipo":"cli","nome":"CENTRO MEDICO COM VIDA","cnpj":"13.995.316","end":"Rua Centralina, 370 - Vila Princesa Isabel - São Paulo - Sp - Cep","bairro":"Guaianases","cidade":"São Paulo","cep":"08410-100","tel":"(11) 2551-2666/ 2553-4171/2552-8044","esp":["Reumatologia","Psiquiatria","Proctologia","Pediatria","Otorrinolaringologia","Ortopedia","Nutrição","Gastroenterologia","Endocrinologia","Dermatologia","Clínica médica / clínico geral","Angiologia","Alergologia"],"reg":"el","id":"cli8","lat":-23.542,"lon":-46.412},{"tipo":"cli","nome":"CLINICA MÉDICA ASSIS","cnpj":"08.723.222","end":"Rua Marselhesa, 75","bairro":"Vila Mariana","cidade":"São Paulo","cep":"04020-060","tel":"(11) 4723-6565","esp":["Psiquiatria"],"reg":"zs","id":"cli9","lat":-23.589,"lon":-46.634},{"tipo":"cli","nome":"ABCORPUS CLINICA MEDICA","cnpj":"33.924.559","end":"Rua Banco das Palmas, 298","bairro":"Santana","cidade":"São Paulo","cep":"02016-020","tel":"(11) 2959-5449","esp":["Psiquiatria","Pneumologia","Gastroenterologia","Endocrinologia","Dermatologia","Clínica médica / clínico geral","Cardiologia"],"reg":"zn","id":"cli10","lat":-23.5,"lon":-46.628},{"tipo":"cli","nome":"MCPA MEDICINA CIRURGICA","cnpj":"59.576.645","end":"Rua Tamandare, 693 - 8º Andar Conj. 88","bairro":"Liberdade","cidade":"São Paulo","cep":"01525-001","tel":"(11) 2364-3960 / 97150-9567 WHATSAPP","esp":[],"reg":"ce","id":"cli11","lat":-23.558,"lon":-46.635},{"tipo":"cli","nome":"OTOBEL CLÍNICA MÉDICA","cnpj":"01.504.052.0001-68","end":"Rua Arlindo Colaço, 328 - 3º Andar - Cj 34","bairro":"São Miguel Paulista","cidade":"São Paulo","cep":"08010-010","tel":"2297-1520","esp":["Otorrinolaringologia"],"reg":"el","id":"cli12","lat":-23.498,"lon":-46.444},{"tipo":"cli","nome":"PRIME JBR MEDICAL GROUPE","cnpj":"17.316.430","end":"Rua Brigadeiro Gaviao Peixoto, 604","bairro":"Lapa","cidade":"São Paulo","cep":"05078-000","tel":"(11) 2896-5707","esp":["Pronto Socorro Adulto"],"reg":"zo","id":"cli13","lat":-23.522,"lon":-46.702},{"tipo":"cli","nome":"L.H. CLINICA MEDICA LTDA","cnpj":"05.193.942","end":"Rua São Benedito, 75 - 1° Andar","bairro":"Santo Amaro","cidade":"São Paulo","cep":"04735-000","tel":"(11) 95843-0230","esp":["Angiologia"],"reg":"zs","id":"cli14","lat":-23.652,"lon":-46.708},{"tipo":"cli","nome":"CENTRO MÉDICO TUA EIRELI","cnpj":"20.585.748.0001-00","end":"Rua Alfredo Moreira Pinto 22","bairro":"Itaim Paulista","cidade":"São Paulo","cep":"","tel":"3385 - 4700","esp":["Pediatria","Ortopedia","Ginecologia","Clínica médica / clínico geral"],"reg":"el","id":"cli15","lat":-23.5,"lon":-46.398},{"tipo":"cli","nome":"CLÍNICA MÉDICA FEDERICO","cnpj":"50.713.460","end":"Rua Serra de Bragança, 523","bairro":"Tatuapé","cidade":"São Paulo","cep":"03318-000","tel":"(11) 2293-8341 / 97535-1049 WHATSAPP","esp":["Pneumologia Pediátrica","Pneumologia","Clínica médica / clínico geral"],"reg":"lc","id":"cli16","lat":-23.54,"lon":-46.576},{"tipo":"cli","nome":"CENTRO CLINICO SANTA MARIA","cnpj":"00.861.584","end":"Rua João Augusto Morais, 101","bairro":"Vila Doutor Eiras","cidade":"São Paulo","cep":"08010-150","tel":"(11) 2956-1005 / 2030-2290 / 2031-0074","esp":["Urologia","Reumatologia","Proctologia","Pediatria","Otorrinolaringologia","Ortopedia","Oftalmologia","Neurologia","Mastologia","Ginecologia","Gastroenterologia","Endocrinologia Pediátrica","Endocrinologia","Dermatologia","Clínica médica / clínico geral","Cardiologia Pediátrica","Cardiologia","Angiologia","Alergologia"],"reg":"el","id":"cli17","lat":-23.497,"lon":-46.446},{"tipo":"cli","nome":"CLINICA MEDICA VILA ALPINA","cnpj":"54.003.348.0001-61","end":"Rua Costa Barros, 505","bairro":"Vila Alpina","cidade":"São Paulo","cep":"08673-020","tel":"(11) 2917-1122 / 2917-1717","esp":["Gastroenterologia","Dermatologia","Clínica médica / clínico geral","Cardiologia","Ginecologia"],"reg":"lc","id":"cli18","lat":-23.59,"lon":-46.56},{"tipo":"cli","nome":"CLINICA DE NEFROLOGIA LESTE","cnpj":"46.367.850.0001-23","end":"Rua Augusto Carlos Bauman, 623","bairro":"Itaquera","cidade":"São Paulo","cep":"08210-590","tel":"2070-3888","esp":["Nefrologia Pediátrica","Nefrologia"],"reg":"el","id":"cli19","lat":-23.539,"lon":-46.455},{"tipo":"cli","nome":"HOMECLIN – CLINICA MÉDICA","cnpj":"07.913.872","end":"Rua Francisco Rodrigues Seckler, 134","bairro":"Itaquera","cidade":"São Paulo","cep":"08230-020","tel":"(11) 2055-8585","esp":["Otorrinolaringologia","Endocrinologia","Dermatologia","Clínica médica / clínico geral","Cardiologia","Angiologia","Pediatria"],"reg":"el","id":"cli20","lat":-23.539,"lon":-46.455},{"tipo":"cli","nome":"CLÍNICA MÉDICA VILA MATILDE","cnpj":"07.723.335.0001-87","end":"Av. Melchert 283","bairro":"Vila Matilde","cidade":"São Paulo","cep":"","tel":"3881-1016","esp":["Clínica médica / clínico geral","Gastroenterologia"],"reg":"lc","id":"cli21","lat":-23.534,"lon":-46.529},{"tipo":"cli","nome":"CLINICA MEDICA DO JARDIM ROBRU","cnpj":"58.928.565","end":"Rua Raimundo de Paula Freitas, 127","bairro":"Jardim Robru","cidade":"São Paulo","cep":"08150-260","tel":"(11) 2511-3865","esp":["Ginecologia"],"reg":"el","id":"cli22","lat":-23.52,"lon":-46.405},{"tipo":"cli","nome":"DERMA-LUZ - SERVIÇOS MÉDICOS","cnpj":"03.781.126","end":"Rua Marconi, 53 - 4º Andar Sala 44","bairro":"República","cidade":"São Paulo","cep":"01047-000","tel":"(11)3257-4191 / 3255-2722","esp":["Dermatologia"],"reg":"ce","id":"cli23","lat":-23.543,"lon":-46.642},{"tipo":"cli","nome":"CLINICA DE ALERGIA E IMUNOLOGIA","cnpj":"08.266.103","end":"Rua Sergento Oswaldo, 174","bairro":"Vila Zilda","cidade":"São Paulo","cep":"03069-020","tel":"(11) 2098-4224 / 2293-0142","esp":["Alergologia"],"reg":"lc","id":"cli24","lat":-23.536,"lon":-46.566},{"tipo":"cli","nome":"ROSANA FERREIRA DE MUSTAFA SALEN","cnpj":"13.678.033","end":"Rua Tuiuti, 2009 1º Andar Sala 14","bairro":"Tatuapé","cidade":"São Paulo","cep":"","tel":"(11) 2091-2477 / 2297-7476 / 99683-1840","esp":["Nutrição Pediátrica","Nutrição"],"reg":"lc","id":"cli25","lat":-23.54,"lon":-46.576},{"tipo":"cli","nome":"ROSANA FERREIRA DE MUSTAFA ASSÉM","cnpj":"13.678.033","end":"Rua Jose Otoni, 284 / 13 Andar, Sala 134","bairro":"São Miguel Paulista","cidade":"São Paulo","cep":"","tel":"(11) 2091-2477 / 2297-7476 99683-1840","esp":["Nutrição Pediátrica","Nutrição"],"reg":"el","id":"cli26","lat":-23.498,"lon":-46.444},{"tipo":"cli","nome":"PLEXUS ORTOPEDIA E TRAUMATOLOGIA","cnpj":"17.784.523-0001-79","end":"Av. Paes de Barros, 2412","bairro":"Parque da Mooca","cidade":"São Paulo","cep":"03149-000","tel":"(11) 2061-3349","esp":["Ortopedia"],"reg":"lc","id":"cli27","lat":-23.565,"lon":-46.588},{"tipo":"cli","nome":"CENTRO CLINICO FORTALEZA DE MINAS","cnpj":"56.848.862","end":"Rua Fortaleza de Minas, 316","bairro":"Jardim Helena","cidade":"São Paulo","cep":"08090-480","tel":"(11) 2582-8500","esp":["Prova de Função Pulmonar","Proctologia","Pneumologia","Pediatria","Otorrinolaringologia","Ortopedia","Obstetrícia","Nutrição","Neurologia","Neurocirurgia","Mastologia","Ginecologia","Gastroenterologia","Eletrocardiograma (ECG)","Ecodopplercardiograma","Clínica médica / clínico geral","Cirurgia Vascular","Cirurgia Urológica","Cirurgia Torácica","Cirurgia Pediátrica","Cirurgia Ginecológica","Cirurgia Geral","Cirurgia Gastroenterológica","Cirurgia de Cabeça e Pescoço","Cirurgia Cardíaca","Cardiologia","Psicologia","Angiologia"],"reg":"el","id":"cli28","lat":-23.486,"lon":-46.418},{"tipo":"cli","nome":"CLINICA NOVA ITAIM - CAMPOS E SUTO","cnpj":"11.342.770.0001-39","end":"Rua Valente de Novais, 51","bairro":"Itaim Paulista","cidade":"São Paulo","cep":"08120-420","tel":"(11) 3678-4949","esp":["Urologia","Reumatologia","Pediatria","Otorrinolaringologia","Ortopedia","Obstetrícia","Ginecologia","Gastroenterologia","Endocrinologia","Dermatologia","Clínica médica / clínico geral","Cardiologia","Alergologia"],"reg":"el","id":"cli29","lat":-23.5,"lon":-46.398},{"tipo":"cli","nome":"CLINICA NOVA ITAIM - CAMPOS E SUTO","cnpj":"11.342.770.0002-10","end":"Rua Belmiro Valverde, 224","bairro":"Guaianases (Lajeado)","cidade":"São Paulo","cep":"08450-050","tel":"(11) 3678-4949","esp":["Urologia","Reumatologia","Pediatria","Otorrinolaringologia","Ortopedia","Obstetrícia","Ginecologia","Gastroenterologia","Endocrinologia","Clínica médica / clínico geral","Cardiologia","Alergologia"],"reg":"el","id":"cli30","lat":-23.535,"lon":-46.4},{"tipo":"cli","nome":"CENTRO MEDICO SANTA RITA DE CASSIA","cnpj":"08.401.035","end":"Av Amador Bueno da Veiga, 4345","bairro":"Penha de França","cidade":"São Paulo","cep":"03653-000","tel":"(11) 2687-2665","esp":["Clínica médica / clínico geral"],"reg":"lc","id":"cli31","lat":-23.527,"lon":-46.543},{"tipo":"cli","nome":"CLINICA MEDICA VIDA NOVA SAÚDE LTDA","cnpj":"09.429.066","end":"Rua Promotor Gabriel Nettuzzi Perez, 422","bairro":"Santo Amaro","cidade":"São Paulo","cep":"04743-020","tel":"(11) 5541-9700 / 96584-4670","esp":["Urologia","Reumatologia","Pneumologia","Otorrinolaringologia","Ortopedia","Neurologia","Ginecologia","Geriatria","Endocrinologia","Dermatologia","Clínica médica / clínico geral","Cardiologia","Angiologia"],"reg":"zs","id":"cli32","lat":-23.652,"lon":-46.708},{"tipo":"cli","nome":"INSTITUTO DE OLHOS LESTE - SÃO PAULO","cnpj":"01.655.819.0001-50","end":"Rua Tuiuti, 1983 - 1º Andar","bairro":"Tatuapé","cidade":"São Paulo","cep":"","tel":"2464-4444","esp":["Oftalmologia Pediátrica","Oftalmologia"],"reg":"lc","id":"cli33","lat":-23.54,"lon":-46.576},{"tipo":"cli","nome":"INSTITUTO DE OLHOS SAO MIGUEL SS LTDA","cnpj":"09.461.727","end":"Av Marechal Tito, 877 - 1º Andar Sl 2","bairro":"São Miguel Paulista","cidade":"São Paulo","cep":"08010-090","tel":"(11) 2032-5637 / 2031-9742","esp":["Oftalmologia"],"reg":"el","id":"cli34","lat":-23.498,"lon":-46.444},{"tipo":"cli","nome":"ALESSANDRA MORAES MAYER - O DR ATENDE","cnpj":"18.740.762","end":"Rua Barão de Jundiai, 263","bairro":"Lapa","cidade":"São Paulo","cep":"05073-010","tel":"(11) 3643-6770 3644-6789","esp":["Urologia","Pediatria","Otorrinolaringologia","Ortopedia","Ginecologia","Geriatria","Endocrinologia","Clínica médica / clínico geral","Cardiologia","Angiologia"],"reg":"zo","id":"cli35","lat":-23.522,"lon":-46.702},{"tipo":"cli","nome":"CENTRO MEDICO SANTA LUZIA (FELICIDADE)","cnpj":"01.322.813.0001-60","end":"Rua Meira Pena, 30","bairro":"Guaianases","cidade":"São Paulo","cep":"08410-080","tel":"2552-6308 / 2557-5756 / 2961-3033","esp":["Pediatria","Otorrinolaringologia","Ginecologia","Endocrinologia","Dermatologia","Clínica médica / clínico geral","Angiologia"],"reg":"el","id":"cli36","lat":-23.542,"lon":-46.412},{"tipo":"cli","nome":"INSTITUTO DE OLHOS LESTE - SÃO MATEUS","cnpj":"01.655.819.0001-50","end":"Rua Mateo Bei, 3230","bairro":"São Mateus","cidade":"São Paulo","cep":"","tel":"2464-4444","esp":["Oftalmologia Pediátrica","Oftalmologia"],"reg":"el","id":"cli37","lat":-23.608,"lon":-46.477},{"tipo":"cli","nome":"MARTINELLI & MACEDO MÉDICOS ASSOCIADOS","cnpj":"08.357.385.0001-50","end":"Av. Guilherme Cotching, 1041","bairro":"Vila Maria","cidade":"São Paulo","cep":"","tel":"2954-9290 / 2631-2332 / 2631-4034","esp":["Infectologia"],"reg":"zn","id":"cli38","lat":-23.512,"lon":-46.585},{"tipo":"cli","nome":"DIAVERUM ASSISTÊNCIA MEDICA E NEFROLOGICA","cnpj":"59.650.366","end":"Rua Francisco Marengo, 1056 Anexo 1060","bairro":"Tatuapé","cidade":"São Paulo","cep":"03313-001","tel":"(11) 2227-5481","esp":["Nefrologia"],"reg":"lc","id":"cli39","lat":-23.54,"lon":-46.576},{"tipo":"cli","nome":"CLINICA DE NEFROLOGIA DO ITAIM PAULISTA LTDA","cnpj":"05.299.909","end":"Av. Marechal Tito, 5843","bairro":"Itaim Paulista","cidade":"São Paulo","cep":"08115-100","tel":"(11) 2571-1421","esp":["Nefrologia"],"reg":"el","id":"cli40","lat":-23.5,"lon":-46.398},{"tipo":"cli","nome":"DRICAMED SAÚDE E ANALISES CLINICAS EM GERAL","cnpj":"44.840.695","end":"Av. Oliveira Freire, 585","bairro":"Parque Paulistano","cidade":"São Paulo","cep":"08080-570","tel":"(11) 2092-9568","esp":["Pediatria","Ginecologia","Clínica médica / clínico geral"],"reg":"el","id":"cli41","lat":-23.492,"lon":-46.44},{"tipo":"cli","nome":"N4P4 SERVIÇOS MÉDICOS LTDA - AVANCE MEDICINA","cnpj":"25.534.499","end":"Rua Coronel Luís Americano, 133","bairro":"Vila Azevedo","cidade":"São Paulo","cep":"03308-020","tel":"(11) 2222-1099 / 99197-8297 WHATSAPP","esp":["Reumatologia","Otorrinolaringologia","Ortopedia","Ginecologia","Endocrinologia","Dermatologia","Clínica médica / clínico geral","Cardiologia"],"reg":"lc","id":"cli42","lat":-23.543,"lon":-46.57},{"tipo":"cli","nome":"CONSUMED – RIAD ARABI CONSULTORIO MEDICO LTDA","cnpj":"03.151.860","end":"Rua Amadeu Gamberini, 66","bairro":"Vila Americana","cidade":"São Paulo","cep":"08010-110","tel":"(11) 97063-4023 WHATSAPP / 2037-7550","esp":["Ginecologia"],"reg":"el","id":"cli43","lat":-23.497,"lon":-46.443},{"tipo":"cli","nome":"CLINICA DE FRATURAS E ORTOPEDIA ARTUR ALVIM - AMOT","cnpj":"04.260.355.0001-70","end":"Rua Maciel Monteiro, 286 - Térreo","bairro":"Artur Alvim","cidade":"São Paulo","cep":"03566-000","tel":"(11) 2747-5320","esp":["Ortopedia","Clínica médica / clínico geral"],"reg":"lc","id":"cli44","lat":-23.54,"lon":-46.483},{"tipo":"cli","nome":"CLINICA, LABORATÓRIO E ODONTOLOGIA SILVEIRA S/S LTDA. (CLINICA LACS)","cnpj":"09.256.168","end":"Rua Tibúrcio de Sousa, 737","bairro":"Itaim Paulista","cidade":"São Paulo","cep":"08140-000","tel":"(11) 2572-8400","esp":["Urologia","Otorrinolaringologia","Ortopedia","Ginecologia","Gastroenterologia","Clínica médica / clínico geral","Cardiologia"],"reg":"el","id":"cli45","lat":-23.5,"lon":-46.398},{"tipo":"cli","nome":"GUARU LIFE","cnpj":"59.844.373.0001-91","end":"Rua Jorge Street, 112","bairro":"Centro","cidade":"Guarulhos","cep":"","tel":"(11) 2442-2222","esp":["Urologia","Psiquiatria","Proctologia","Pneumologia","Pediatria","Otorrinolaringologia Pediátrica","Neurologia","Mastologia","Ginecologia","Gastroenterologia","Endocrinologia","Dermatologia","Clínica médica / clínico geral","Alergologia","Cardiologia"],"reg":"gu","id":"cli46","lat":-23.466,"lon":-46.533},{"tipo":"cli","nome":"CLINICA VISUAL LIDER","cnpj":"66.657.479","end":"Rua Cavadas, 229","bairro":"Vila São João","cidade":"Guarulhos","cep":"07044-000","tel":"(11) 2421-5222","esp":["Oftalmologia"],"reg":"gu","id":"cli47","lat":-23.463,"lon":-46.52},{"tipo":"cli","nome":"L.H. CLINICA MEDICA LTDA","cnpj":"05.193.942","end":"Av Salgado Filho, 2120 - Sala 2001","bairro":"Centro","cidade":"Guarulhos","cep":"07115-000","tel":"(11) 95843-0230","esp":[],"reg":"gu","id":"cli48","lat":-23.466,"lon":-46.533},{"tipo":"cli","nome":"CLINICA JARDIM SÃO JOÃO","cnpj":"02.338.519","end":"Rua Lagoa de Dentro, 74","bairro":"Jardim São João","cidade":"Guarulhos","cep":"07151-051","tel":"(11) 2229-2930 / 93955-9191","esp":["Urologia","Reumatologia","Psiquiatria","Proctologia","Pneumologia","Pediatria","Ortopedia","Oftalmologia","Neurologia","Ginecologia","Gastroenterologia","Endocrinologia","Dermatologia","Clínica médica / clínico geral","Cardiologia Pediátrica","Cardiologia"],"reg":"gu","id":"cli49","lat":-23.43,"lon":-46.445},{"tipo":"cli","nome":"CLINICA MEDICA BEM VIVER","cnpj":"24.828.945","end":"Av. Brigadeiro Faria Lima, 3158","bairro":"Cocaia","cidade":"Guarulhos","cep":"07130-000","tel":"(11) 2401-8994 / 98481-2948","esp":["Urologia","Ortopedia","Ginecologia","Dermatologia","Clínica médica / clínico geral","Cardiologia"],"reg":"gu","id":"cli50","lat":-23.441,"lon":-46.505},{"tipo":"cli","nome":"CLINICA MEDICA MARINELLO LTDA","cnpj":"12.973.623","end":"Rua Anice, 30","bairro":"Jardim Santa Mena","cidade":"Guarulhos","cep":"07097-010","tel":"(11) 2304-1407","esp":["Dermatologia","Clínica médica / clínico geral","Cardiologia"],"reg":"gu","id":"cli51","lat":-23.458,"lon":-46.555},{"tipo":"cli","nome":"CLINICA START DIAGNOSTICOS LTDA","cnpj":"54.969.868","end":"Rua São Bento Trairi, 577","bairro":"Jardim São João","cidade":"Guarulhos","cep":"07151-310","tel":"(11) 3631-7162 / 95402-2341 WHATSAPP / 95853-1578","esp":["Pediatria","Ortopedia","Ginecologia","Dermatologia","Clínica médica / clínico geral"],"reg":"gu","id":"cli52","lat":-23.43,"lon":-46.445},{"tipo":"cli","nome":"LORENT & GALER SERVICO MEDICOS","cnpj":"22.486.303","end":"Rua Silvestre Vasconcelos Calmon, 51 - 14° Conj. 1416","bairro":"Vila Pedro Moreira","cidade":"Guarulhos","cep":"07020-001","tel":"(11) 91085-4861","esp":["Gastroenterologia Pediátrica"],"reg":"gu","id":"cli53","lat":-23.472,"lon":-46.54},{"tipo":"cli","nome":"KAMED GUARULHOS SERVIÇOS MÉDICOS","cnpj":"05.436.331","end":"Rua Professora Anita Guastini Eiras, 95 - 6º Andar Sala 61 e 62","bairro":"Jardim Zaira","cidade":"Guarulhos","cep":"07094-010","tel":"(11) 4963-3450 / 2421-8742 / 2086-3897 / 34581-879","esp":["Cardiologia","Clínica médica / clínico geral","Dermatologia","Endocrinologia","Ginecologia","Hematologia","Otorrinolaringologia"],"reg":"gu","id":"cli54","lat":-23.47,"lon":-46.55},{"tipo":"cli","nome":"CLINICA JARDIM SÃO JOÃO - BOM CLIMA","cnpj":"02.338.519.0001.00","end":"Av. Mariana Ubaldina do Espirito Santos, 623 7° Andar","bairro":"Bom Clima","cidade":"Guarulhos","cep":"","tel":"(11) 2229-2930 / 2467-1260 / 93955-9191","esp":["Urologia","Pneumologia","Ortopedia","Ginecologia e Obstetrícia","Ginecologia","Gastroenterologia","Dermatologia","Clínica médica / clínico geral","Cirurgia Geral","Cardiologia"],"reg":"gu","id":"cli55","lat":-23.461,"lon":-46.535},{"tipo":"cli","nome":"INSTITUTO DE OLHOS LESTE - GUARULHOS I","cnpj":"01.655.819.0001-50","end":"Rua Gabriel Machado, 45","bairro":"Centro","cidade":"Guarulhos","cep":"","tel":"2464-4444","esp":["Oftalmologia Pediátrica","Oftalmologia"],"reg":"gu","id":"cli56","lat":-23.466,"lon":-46.533},{"tipo":"cli","nome":"INSTITUTO DE OLHOS LESTE - GUARULHOS II","cnpj":"01.655.819.0001-50","end":"Rua Gabriel Machado, 170 - 1º Andar","bairro":"Centro","cidade":"Guarulhos","cep":"","tel":"2464-4444","esp":["Oftalmologia Pediátrica","Oftalmologia"],"reg":"gu","id":"cli57","lat":-23.466,"lon":-46.533},{"tipo":"cli","nome":"O. M. CLINICA DA SAÚDE LTDA (ODMEDICA)","cnpj":"29.823.079","end":"Rua da Fortuna, 524 / Lote 2 - Quadra B","bairro":"Macedo","cidade":"Guarulhos","cep":"07197-100","tel":"(11) 2451-1404 / 2408-2409","esp":["Pediatria","Ginecologia","Clínica médica / clínico geral"],"reg":"gu","id":"cli58","lat":-23.487,"lon":-46.52},{"tipo":"cli","nome":"DIAVERUM ASSISTÊNCIA MEDICA E NEFROLOGICA","cnpj":"59.650.366","end":"Av. Tiradentes, 777","bairro":"Jardim Guarulhos","cidade":"Guarulhos","cep":"07090-000","tel":"(11) 4837-1130","esp":["Nefrologia"],"reg":"gu","id":"cli59","lat":-23.477,"lon":-46.545},{"tipo":"cli","nome":"CLINICA JARDIM SÃO JOÃO - JARDIM SÃO JOÃO","cnpj":"02.338.519.0001-00","end":"Rua Lagoa de Dentro, 69","bairro":"Jardim São João","cidade":"Guarulhos","cep":"07151-051","tel":"(11) 2229-2930 / 2467-1260 / 93955-9191","esp":["Urologia","Proctologia","Pneumologia","Pediatria","Otorrinolaringologia","Ortopedia","Neurologia","Ginecologia e Obstetrícia","Ginecologia","Gastroenterologia","Dermatologia","Cirurgia Geral","Cardiologia"],"reg":"gu","id":"cli60","lat":-23.43,"lon":-46.445},{"tipo":"cli","nome":"MED CLINICAS SERVIÇOS MEDICOS ESPECIALIZADOS","cnpj":"04.158.471","end":"Rua Harry Simonsen, 93","bairro":"Vila das Palmeiras","cidade":"Guarulhos","cep":"07013-110","tel":"(11) 2447-0413 / 2472-7235","esp":["Otorrinolaringologia","Ortopedia","Clínica médica / clínico geral"],"reg":"gu","id":"cli61","lat":-23.465,"lon":-46.528},{"tipo":"cli","nome":"CLINICA JARDIM SÃO JOÃO - BAIRRO DOS PIMENTAS","cnpj":"02.338.519.0001-00","end":"Rua Iguarape Grande, 229","bairro":"Bairro dos Pimentas","cidade":"Guarulhos","cep":"","tel":"(11) 2229-2930 / 2467-1260 / 93955-9191","esp":["Urologia","Pneumologia","Pediatria","Ortopedia","Ginecologia e Obstetrícia","Ginecologia","Gastroenterologia","Dermatologia","Clínica médica / clínico geral","Cirurgia Geral","Cardiologia"],"reg":"gu","id":"cli62","lat":-23.438,"lon":-46.405},{"tipo":"cli","nome":"IOG - INSTITUTO DE ONCOLOGIA E RADIOTERAPIA DE GUARULHOS","cnpj":"01.261.762.0001-04 EQUIPE ESPECIALIZADA EM ONCOLOGIA","end":"Rua dos Metalúrgicos, 32","bairro":"Centro","cidade":"Guarulhos","cep":"07013-131","tel":"(11) 2475-5050","esp":["Oncologia"],"reg":"gu","id":"cli63","lat":-23.466,"lon":-46.533},{"tipo":"lab","nome":"LABI EXAMES S/A","cnpj":"27.579.749","end":"Rua Barão do Rio Branco, 373","bairro":"Santo Amaro","cidade":"São Paulo","cep":"04753-000","tel":"(11) 3003-2686 / 4200-3211 WHATSAPP","esp":["Análises Clínicas"],"reg":"zs","id":"lab64","lat":-23.652,"lon":-46.708},{"tipo":"lab","nome":"LABI EXAMES S/A","cnpj":"27.579.749","end":"Av. São Luís, 218 - Loja 1","bairro":"República","cidade":"São Paulo","cep":"01046-000","tel":"(11) 3003-2686 / 4200-3211 WHATSAPP","esp":["Análises Clínicas"],"reg":"ce","id":"lab65","lat":-23.543,"lon":-46.642},{"tipo":"lab","nome":"LABI EXAMES S/A","cnpj":"27.579.749","end":"Rua Domingos de Morais, 2104","bairro":"Vila Mariana","cidade":"São Paulo","cep":"04036-000","tel":"(11) 3003-2686 / 4200-3211 WHATSAPP","esp":["Análises Clínicas"],"reg":"zs","id":"lab66","lat":-23.589,"lon":-46.634},{"tipo":"lab","nome":"LABI EXAMES S/A","cnpj":"27.579.749","end":"Rua dos Pinheiros, 1392","bairro":"Pinheiros","cidade":"São Paulo","cep":"05422-002","tel":"(11) 3003-2686 / 4200-3211 WHATSAPP","esp":["Análises Clínicas"],"reg":"zo","id":"lab67","lat":-23.566,"lon":-46.69},{"tipo":"lab","nome":"LABI EXAMES S/A","cnpj":"27.579.749","end":"Rua Voluntários da Pátria, 1801","bairro":"Santana","cidade":"São Paulo","cep":"02011-400","tel":"(11) 3003-2686 / 4200-3211 WHATSAPP","esp":["Análises Clínicas"],"reg":"zn","id":"lab68","lat":-23.5,"lon":-46.628},{"tipo":"lab","nome":"LABI EXAMES S/A","cnpj":"27.579.749","end":"Praça Silvio Romero, 150","bairro":"Cidade Mãe do Céu","cidade":"São Paulo","cep":"03323-000","tel":"(11) 3003-2686 / 4200-3211 WHATSAPP","esp":["Análises Clínicas"],"reg":"lc","id":"lab69","lat":-23.548,"lon":-46.573},{"tipo":"lab","nome":"LABI EXAMES S/A","cnpj":"27.579.749","end":"Rua Nossa Senhora da Lapa, 439","bairro":"Lapa","cidade":"São Paulo","cep":"05072-000","tel":"(11) 3003-2686 / 4200-3211 WHATSAPP","esp":["Análises Clínicas"],"reg":"zo","id":"lab70","lat":-23.522,"lon":-46.702},{"tipo":"lab","nome":"LABI EXAMES S/A","cnpj":"27.579.749","end":"Rua Fidencio Ramos, 160 - Conj 405/406","bairro":"Vila Olímpia","cidade":"São Paulo","cep":"04551-010","tel":"(11) 3003-2686 / 4200-3211 WHATSAPP","esp":["Análises Clínicas"],"reg":"zs","id":"lab71","lat":-23.596,"lon":-46.686},{"tipo":"lab","nome":"LABI EXAMES S/A","cnpj":"27.579.749","end":"Rua João Augusto Morais, 240","bairro":"Vila Doutor Eiras","cidade":"São Paulo","cep":"08010-150","tel":"(11) 3003-2686 / 4200-3211 WHATSAPP","esp":["Análises Clínicas"],"reg":"el","id":"lab72","lat":-23.497,"lon":-46.446},{"tipo":"lab","nome":"LABI EXAMES S/A","cnpj":"27.579.749","end":"Rua Silva Bueno,2247","bairro":"Ipiranga","cidade":"São Paulo","cep":"04208-053","tel":"(11) 3003-2686 / 4200-3211 WHATSAPP","esp":["Ecodopplercardiograma","Análises Clínicas"],"reg":"zs","id":"lab73","lat":-23.588,"lon":-46.607},{"tipo":"lab","nome":"LABI EXAMES S/A","cnpj":"27.579.749","end":"Rua Victorio Santim, 81","bairro":"Itaquera","cidade":"São Paulo","cep":"08290-000","tel":"(11) 3003-2686 4200-3211 WHATSAPP","esp":["Análises Clínicas"],"reg":"el","id":"lab74","lat":-23.539,"lon":-46.455},{"tipo":"lab","nome":"LABI EXAMES S/A","cnpj":"27.579.749","end":"Avenida Penha de França, 593 /597 /601","bairro":"Penha","cidade":"São Paulo","cep":"03606-010","tel":"(11) 3003-2686 / 4200-3211 WHATSAPP","esp":[],"reg":"lc","id":"lab75","lat":-23.527,"lon":-46.543},{"tipo":"lab","nome":"EL DIAGNÓSTICOS","cnpj":"18.505.205","end":"Rua Padre Benedito de Camargo, 534","bairro":"Penha de França","cidade":"São Paulo","cep":"03604-000","tel":"(11) 2082-5099","esp":["Ultrassonografia Convencional","Radiologia","Mamografia","Densitometria Óssea"],"reg":"lc","id":"lab76","lat":-23.527,"lon":-46.543},{"tipo":"lab","nome":"LABORATÓRIO SÃO MIGUEL","cnpj":"45.565.868.0001-77","end":"Rua João Augusto de Morais, 174","bairro":"São Miguel Paulista","cidade":"São Paulo","cep":"08010-150","tel":"2297-5685","esp":["Papanicolau","Análises Clínicas"],"reg":"el","id":"lab77","lat":-23.498,"lon":-46.444},{"tipo":"lab","nome":"AURI MEDICINA DIAGNOSTICA","cnpj":"23.592.317","end":"Av Cruzeiro do Sul, 3337","bairro":"Santana","cidade":"São Paulo","cep":"02031-200","tel":"(11) 4517-4900","esp":["Tomografia Computadorizada","Ressonância Magnética"],"reg":"zn","id":"lab78","lat":-23.5,"lon":-46.628},{"tipo":"lab","nome":"AVANTE MEDICINA DIAGNÓSTICA","cnpj":"18.563.410","end":"Rua Doutor Raul da Rocha Medeiros, 62","bairro":"Tatuapé","cidade":"São Paulo","cep":"03071-100","tel":"(11) 2090-2626","esp":["Vulvoscopia","Ultrassonografia Morfológica","Ultrassonografia Convencional","Tomografia Computadorizada","Teste Ergométrico","Ressonância Magnética","Radiologia","Nasofibrolaringoscopia","Prova de Função Pulmonar (somente com Guia de Encaminhamento)","MAPA (monitoração Ambulatorial da Pressão Arterial)","Impedanciometria","Eletroencefalograma (EEG)","Eletrocardiograma (ECG)","Ecodopplercardiograma","Colposcopia","Densitometria Óssea","Audiometria Vocal","Análises Clínicas","Anatomia Patológica","Audiometria Tonal"],"reg":"lc","id":"lab79","lat":-23.54,"lon":-46.576},{"tipo":"lab","nome":"MAXIMO CENTRO DE DIAGNOSTICOS","cnpj":"09.368.560","end":"Rua Doutor Raul da Rocha Medeiros, 127","bairro":"Tatuapé","cidade":"São Paulo","cep":"03071-100","tel":"(11) 2090-7999","esp":["Vulvoscopia","Teste Ergométrico","Radiologia","Prova de Função Pulmonar","Nasofibrolaringoscopia","MAPA (monitoração Ambulatorial da Pressão Arterial)","Impedanciometria","Holter 24 Horas","Histeroscopia Diagnóstico","Endoscopia Digestiva Alta (EDA)","Eletrocardiograma (ECG)","Ecodopplercardiograma","Densitometria Óssea","Colposcopia","Audiometria Vocal","Audiometria Tonal","Ultrassonografia Convencional","Anatomia Patológica","Análises Clínicas","Ultrassonografia Morfológica"],"reg":"lc","id":"lab80","lat":-23.54,"lon":-46.576},{"tipo":"lab","nome":"ASSAD LABORATORIO S/S LTDA - ME","cnpj":"01.183.162","end":"Rua Amadeu Gamberini, 66","bairro":"Vila Americana","cidade":"São Paulo","cep":"08010-110","tel":"(11) 2545-0070 / 2546-0055 / 94326-0932 WHATSAPP","esp":["Vulvoscopia","Papanicolau","Colposcopia","Análises Clínicas"],"reg":"el","id":"lab81","lat":-23.497,"lon":-46.443},{"tipo":"lab","nome":"ASSAD LABORATORIO S/S LTDA – ME","cnpj":"01.183.162","end":"Av. Boturussu, 1750","bairro":"Parque Boturussu","cidade":"São Paulo","cep":"03802-000","tel":"(11) 2545-0070 / 2546-0055/ 94326-0932 WHATSSAPP","esp":["Vulvoscopia","Papanicolau","Colposcopia","Análises Clínicas"],"reg":"el","id":"lab82","lat":-23.503,"lon":-46.478},{"tipo":"lab","nome":"CRYA RADIOLOGICA YEOCHUA AVRITCHIR","cnpj":"49.324.056","end":"Rua Marques de Itú, 623 - 633","bairro":"Higienópolis","cidade":"São Paulo","cep":"01223-001","tel":"(11) 3352-1344 / 2076-7880","esp":["Radiologia"],"reg":"ce","id":"lab83","lat":-23.543,"lon":-46.655},{"tipo":"lab","nome":"INSTITUTO DE MEDICINA DIGITAL DIMEDI","cnpj":"54.537.337.0001-61","end":"Rua Fernandes Pinheiro, 97/105","bairro":"Tatuapé","cidade":"São Paulo","cep":"","tel":"(11) 2227-9622","esp":["Tomografia Computadorizada","Ressonância Magnética"],"reg":"lc","id":"lab84","lat":-23.54,"lon":-46.576},{"tipo":"lab","nome":"CENTRO MÉDICO DE DIAGNÓSTICO ENDOMAX","cnpj":"04.505.148.0001-39","end":"Rua João Augusto de Morais, 181","bairro":"São Miguel Paulista","cidade":"São Paulo","cep":"","tel":"(11)2032-6355/ 2297-3811/94054-8964 WHATSAPP","esp":["Urofluxometria","Retossigmoidoscopia Flexível","pH-metria Esofâgica","Manometria Esofágica","Manometria Ano-retal","Endoscopia Digestiva Alta (EDA)","Colonoscopia","Anuscopia"],"reg":"el","id":"lab85","lat":-23.498,"lon":-46.444},{"tipo":"lab","nome":"LABORATÓRIO DE ANALISES CLINICAS SANITAS","cnpj":"49.093.024","end":"Rua Américo Gomes da Costa, 230","bairro":"São Miguel Paulista","cidade":"São Paulo","cep":"08010-120","tel":"(11) 2472-5122 / 99389-8959 WHATSAPP","esp":["Vulvoscopia","Ultrassonografia Morfológica","Ultrassonografia Convencional","Teste Ergométrico","Radiologia","Prova de Função Pulmonar","MAPA (monitoração Ambulatorial da Pressão Arterial)","Impedanciometria","Espirometria","Eletroencefalograma (EEG)","Eletrocardiograma (ECG)","Densitometria Óssea","Colposcopia","Audiometria Vocal","Audiometria Tonal","Angiologia"],"reg":"el","id":"lab86","lat":-23.498,"lon":-46.444},{"tipo":"lab","nome":"CLINICA DE CARDIOLOGIA DR. MÁRIO RISEGATO NETO","cnpj":"52.629.797","end":"Rua Arlindo Colaço, 328 - 4 / Cj 44","bairro":"São Miguel Paulista","cidade":"São Paulo","cep":"08010-010","tel":"(11) 2979-8843 /2956-7885 / 2297-5678","esp":["MAPA (monitoração Ambulatorial da Pressão Arterial)","Holter 24 Horas","Eletrocardiograma (ECG)","Ecodopplercardiograma","Teste Ergométrico"],"reg":"el","id":"lab87","lat":-23.498,"lon":-46.444},{"tipo":"lab","nome":"CLINICA DE CARDIOLOGIA DR. MÁRIO RISEGATO NETO","cnpj":"52.629.797","end":"Av. Leôncio de Magalhães, 1328","bairro":"Jardim São Paulo","cidade":"São Paulo","cep":"02042-001","tel":"(11) 2979-8843 / 2956-7885 / 2297-5678","esp":[],"reg":"zn","id":"lab88","lat":-23.492,"lon":-46.617},{"tipo":"lab","nome":"GIMI - INSTITUTO DE RADIOLOGIA E ULTRASSONOGRAFIA","cnpj":"58.800.558.0001-31","end":"Rua Isabel, 131","bairro":"Penha","cidade":"São Paulo","cep":"","tel":"(11) 2958-9323 / 3796-6500","esp":["Ultrassonografia Convencional","Tomografia Computadorizada","Teste Ergométrico","Ressonância Magnética","Radiologia","Mamografia","MAPA (monitoração Ambulatorial da Pressão Arterial)","Holter 24 Horas","Eletrocardiograma (ECG)","Ecodopplercardiograma","Densitometria Óssea","Anatomia Patológica","Análises Clínicas"],"reg":"lc","id":"lab89","lat":-23.527,"lon":-46.543},{"tipo":"lab","nome":"VITAL LAB LABORATÓRIO DE ANALISES CLINICAS LTDA","cnpj":"06.264.065","end":"Av. Pacaembu, 1213","bairro":"Pacaembu","cidade":"São Paulo","cep":"01234-001","tel":"(11) 3420-0060 / 94001-3043 WHATSAPP","esp":["Análises Clínicas"],"reg":"zo","id":"lab90","lat":-23.542,"lon":-46.665},{"tipo":"lab","nome":"INTERCLIN ANALISES CLINICAS E DOCUMENTAÇÃO (SP EXAMES)","cnpj":"11.511.282","end":"Rua Amadeu Gamberini, 174","bairro":"Vila Americana","cidade":"São Paulo","cep":"08010-110","tel":"(11) 2924-2634 / 2924-2689 / 96332-4015","esp":["Análises Clínicas"],"reg":"el","id":"lab91","lat":-23.497,"lon":-46.443},{"tipo":"lab","nome":"INTERCLIN ANALISES CLINICAS E DOCUMENTAÇÃO LTDA. (SP EXAMES)","cnpj":"11.511.282","end":"Rua Urucurana, 01 - Hospital Independência Andar Térreo","bairro":"Jardim Pedro José Nunes","cidade":"São Paulo","cep":"08061-100","tel":"(11) 2924-2634 / 2924-2689 / 96332-4015","esp":["Análises Clínicas"],"reg":"el","id":"lab92","lat":-23.505,"lon":-46.462},{"tipo":"lab","nome":"CENTRO DE DIAGNOSTICO E TERAPEUTICA ENDOSCOPICA - ARTUR PARADA","cnpj":"56.822.786","end":"Rua Itapeva, 366 - Cj 103/104","bairro":"Cerqueira César","cidade":"São Paulo","cep":"01332-000","tel":"(11) 3170-8787","esp":["Endoscopia Digestiva Alta (EDA)"],"reg":"ce","id":"lab93","lat":-23.561,"lon":-46.664},{"tipo":"lab","nome":"AZEVEDO MENDES EXAMES POR IMAGEM EIRELI (UNIDADE PAULISTA DE IMAGEM)","cnpj":"26.973.106","end":"Rua Professor Francisco Pinheiro, 211","bairro":"Vila Princesa Isabel","cidade":"São Paulo","cep":"08410-020","tel":"(11) 2961-4233","esp":["Radiologia","Ressonância Magnética","Tomografia Computadorizada","Ultrassonografia Convencional"],"reg":"el","id":"lab94","lat":-23.541,"lon":-46.414},{"tipo":"lab","nome":"LABI EXAMES S/A","cnpj":"POSTO DE COLETA","end":"Rua João Goncalves, 95","bairro":"Centro","cidade":"Guarulhos","cep":"07010-010","tel":"(11) 3003-2686 (11) 4200-3211 WHATSAPP","esp":["Análises Clínicas"],"reg":"gu","id":"lab95","lat":-23.466,"lon":-46.533},{"tipo":"lab","nome":"IMEX DIAGNÓSTICOS POR IMAGEM","cnpj":"36.043.777","end":"Rua Miguel Romano, 65","bairro":"Centro","cidade":"Guarulhos","cep":"07012-060","tel":"(11) 4804-6699","esp":["Ressonância Magnética"],"reg":"gu","id":"lab96","lat":-23.466,"lon":-46.533},{"tipo":"lab","nome":"UNINEURO MÉDICOS ASSOCIADOS - DIMAGEM","cnpj":"49.354.376","end":"Rua Otávio Nunes da Silva, 301","bairro":"Gopouva","cidade":"Guarulhos","cep":"07021-001","tel":"(11) 2441-3023 / 2442-8554 / 97262-2764","esp":["Ultrassonografia Convencional","Tomografia Computadorizada","Mamografia"],"reg":"gu","id":"lab97","lat":-23.466,"lon":-46.545},{"tipo":"lab","nome":"LABORATÓRIO DE ANÁLISES CLÍNICAS SANITAS","cnpj":"49.093.024.0001-21","end":"Rua Luiz Faccini, 604","bairro":"Centro","cidade":"Guarulhos","cep":"","tel":"(11) 2472-5122 / 99389-8959 WHATSAPP","esp":["Vulvoscopia","Urodinâmica","Ultrassonografia Convencional","Teste Ergométrico","Radiologia","Prova de Função Pulmonar","Papanicolau","Mamografia","MAPA (monitoração Ambulatorial da Pressão Arterial)","Holter 24 Horas","Espirometria","Eletroencefalograma (EEG)","Eletrocardiograma (ECG)","Ecodopplercardiograma","Densitometria Óssea","Colposcopia","Audiometria Vocal","Audiometria Tonal","Anatomia Patológica","Análises Clínicas"],"reg":"gu","id":"lab98","lat":-23.466,"lon":-46.533},{"tipo":"lab","nome":"LABORATÓRIO DE ANÁLISES CLÍNICAS SANITAS","cnpj":"49.093.024.0001-21","end":"Rua Darcy Vargas, 339","bairro":"Jardim Zaira","cidade":"Guarulhos","cep":"","tel":"(11) 2472-5122 / 99389-8959 WHATSAPP","esp":[],"reg":"gu","id":"lab99","lat":-23.47,"lon":-46.55},{"tipo":"lab","nome":"CENTRO ESP EM DIAG E ULTRA DE SÃO PAULO - CEDUSP","cnpj":"00.754.320","end":"Rua Professora Anita Guastini Eiras, 37","bairro":"Jardim Zaira","cidade":"Guarulhos","cep":"07094-010","tel":"(11) 2409-3330 / 2409-4229 / 2408-7798","esp":["Ultrassonografia Convencional","Radiologia","Mamografia","Eletroneuromiografia","Densitometria Óssea"],"reg":"gu","id":"lab100","lat":-23.47,"lon":-46.55},{"tipo":"lab","nome":"LABORATÓRIO DELIBERATO DE ANALISES CLINICAS LTDA","cnpj":"61.486.650","end":"Rua Nossa Senhora Mãe dos Homens, 353","bairro":"Vila Progresso","cidade":"Guarulhos","cep":"07091-000","tel":"(11) 4646-7444","esp":["Análises Clínicas"],"reg":"gu","id":"lab101","lat":-23.475,"lon":-46.535},{"tipo":"lab","nome":"CENTRO ESP EM DIAG E ULTRA DE SÃO PAULO - CEDUSP","cnpj":"00.754.320","end":"Av. Silvestre Pires de Freitas, 289","bairro":"Taboão","cidade":"Guarulhos","cep":"07144-000","tel":"(11) 2409-3330 / 99630-0729","esp":["Radiologia","Ultrassonografia Convencional","MAPA (monitoração Ambulatorial da Pressão Arterial)","Holter 24 Horas","Espirometria","Eletrocardiograma (ECG)","Ecodopplercardiograma","Densitometria Óssea","Colposcopia","Anatomia Patológica","Análises Clínicas","Vulvoscopia"],"reg":"gu","id":"lab102","lat":-23.425,"lon":-46.515},{"tipo":"hos","nome":"PRIME HOUSE CENTRO TERAPEUTICO","cnpj":"09.300.833","end":"Av. Lineu de Paula Machado, 1174 a","bairro":"Jardim Everest","cidade":"São Paulo","cep":"05601-001","tel":"(11) 2507-8648 / 98953-4864","esp":["Pronto Socorro Psiquiatria"],"reg":"zo","id":"hos103","lat":-23.583,"lon":-46.707},{"tipo":"hos","nome":"HOSPITAL JARDIM HELENA","cnpj":"47.140.322.0001-08","end":"Rua Erva Andorinha, 123","bairro":"Jardim Helena","cidade":"São Paulo","cep":"08090-470","tel":"2582-8500","esp":["Urologia","Ultrassonografia Convencional","Tomografia Computadorizada","Retossigmoidoscopia Flexível","Radiologia","Psicologia Pediátrica","Psicologia","Prova de Função Pulmonar","Pronto Socorro Pediatria","Pronto Socorro Ortopedia","Pronto Socorro Ginecologia e Obstetrícia","Pronto Socorro Adulto","Pronto Socorro","Proctologia","Pneumologia","Pediatria","Otorrinolaringologia","Ortopedia Pediátrica","Ortopedia","Obstetrícia","Nutrição","Neurologia Pediátrica","Neurologia","Neurocirurgia","Nasofibrolaringoscopia","Maternidade","Mastologia","Ginecologia e Obstetrícia","Ginecologia","Gastroenterologia","Endoscopia Digestiva Alta (EDA)","Endocrinologia","Eletrocardiograma (ECG)","Ecodopplercardiograma","Colonoscopia","Clínica médica / clínico geral","Cirurgia Vascular","Cirurgia Urológica","Cirurgia Torácica","Cirurgia Plástica - Reparadora","Cirurgia Pediátrica","Cirurgia Ginecológica","Cirurgia Geral","Cirurgia Gastroenterológica","Cardiologia","Buco Maxilo Facial","Angiologia","Anatomia Patológica","Análises Clínicas","Urologia Pediátrica"],"reg":"el","id":"hos104","lat":-23.486,"lon":-46.418},{"tipo":"hos","nome":"PRONTO SOCORRO ITAQUERA","cnpj":"52.843.158","end":"Rua Jose Oiticica Filho, 123","bairro":"Itaquera","cidade":"São Paulo","cep":"03303-000","tel":"(11) 2205-4140","esp":["Pronto Socorro"],"reg":"el","id":"hos105","lat":-23.539,"lon":-46.455},{"tipo":"hos","nome":"CEMA HOSPITAL ESPECIALIZADO","cnpj":"47.192.752","end":"Rua Padre Adelino, 333","bairro":"Quarta Parada","cidade":"São Paulo","cep":"03303-000","tel":"(11) 2602-8000","esp":["Pronto Socorro"],"reg":"lc","id":"hos106","lat":-23.557,"lon":-46.584},{"tipo":"hos","nome":"SANTA IZILDINHA CENTRO MEDICO LIMITADA","cnpj":"02.396.119","end":"Rua Dr Galvão Guimaraes, 72","bairro":"São Mateus","cidade":"São Paulo","cep":"03970-040","tel":"(11) 2177-4444","esp":["Pronto Socorro Pediatria","Pronto Socorro Ortopedia","Pronto Socorro Ginecologia e Obstetrícia","Pronto Socorro Adulto"],"reg":"el","id":"hos107","lat":-23.608,"lon":-46.477},{"tipo":"hos","nome":"HOSPITAL E PRONTO SOCORRO PORTINARI (SAINT PATRICK)","cnpj":"49.460.108","end":"Av. Candidio Portinari, 455","bairro":"Vila Jaguara","cidade":"São Paulo","cep":"","tel":"3465-0700","esp":["Pronto Socorro Pediatria","Pronto Socorro Ortopedia","Pronto Socorro Ginecologia e Obstetrícia","Pronto Socorro Adulto"],"reg":"zo","id":"hos108","lat":-23.51,"lon":-46.742},{"tipo":"hos","nome":"ASSOCIAÇÃO DE ASSISTÊNCIA MUTUA A SAUDE SBC - HOSPITAL SBC","cnpj":"60.851.961","end":"Rua Blumenau, 320","bairro":"Vila Leopoldina","cidade":"São Paulo","cep":"05319-020","tel":"(11) 2197-2400","esp":["Pronto Socorro Adulto"],"reg":"zo","id":"hos109","lat":-23.527,"lon":-46.735},{"tipo":"hos","nome":"CLINICAS MEDICAS LTDA (ESPAÇO SAÚDE ATENDIMENTO AMBULATORIAL)","cnpj":"10.935.642","end":"Av. Nova Cantareira, 2.575","bairro":"Tucuruvi","cidade":"São Paulo","cep":"02431-000","tel":"(11) 5108-5264","esp":["Pronto Socorro Pediatria","Pronto Socorro Adulto"],"reg":"zn","id":"hos110","lat":-23.477,"lon":-46.603}];
+const TIPOS = [{k:'cli',n:'Clínicas médicas'},{k:'lab',n:'Laboratórios e imagem'},{k:'hos',n:'Hospitais e PS'}];
+const TIPO_N = {cli:'Clínica médica',lab:'Laboratório / imagem',hos:'Hospital / PS'};
+const REG = [
+  {k:'el', n:'Extremo Leste', d:'Itaim Paulista, Jd. Helena, São Miguel, Guaianases, Itaquera, São Mateus'},
+  {k:'gu', n:'Guarulhos', d:'Centro, Pimentas, Bonsucesso, Gopouva'},
+  {k:'lc', n:'Zona Leste', d:'Tatuapé, Penha, Mooca, Vila Matilde, Artur Alvim'},
+  {k:'ce', n:'Centro', d:'Aclimação, Bela Vista, República, Higienópolis'},
+  {k:'zn', n:'Zona Norte', d:'Santana, Vila Maria, Tucuruvi'},
+  {k:'zs', n:'Zona Sul', d:'Santo Amaro, Vila Mariana, Ipiranga, Vila Olímpia'},
+  {k:'zo', n:'Zona Oeste', d:'Lapa, Pinheiros, Leopoldina, Vila Jaguara'}
+];
+const CG='Clínica médica / clínico geral';
+const ST={pedido:'Aguardando vaga',agendado:'Agendado',realizado:'Realizado',cancelado:'Cancelado'};
+const byId=Object.fromEntries(DATA.map(r=>[r.id,r]));
+const PLACES = [{"g":"Alto Tietê e vizinhas","n":"Itaquaquecetuba (Centro)","lat":-23.486,"lon":-46.348},{"g":"Alto Tietê e vizinhas","n":"Poá","lat":-23.529,"lon":-46.345},{"g":"Alto Tietê e vizinhas","n":"Ferraz de Vasconcelos","lat":-23.541,"lon":-46.369},{"g":"Alto Tietê e vizinhas","n":"Suzano","lat":-23.543,"lon":-46.311},{"g":"Alto Tietê e vizinhas","n":"Mogi das Cruzes","lat":-23.522,"lon":-46.188},{"g":"Alto Tietê e vizinhas","n":"Arujá","lat":-23.396,"lon":-46.321},{"g":"Bairros de Guarulhos","n":"Bairro dos Pimentas (Guarulhos)","lat":-23.438,"lon":-46.405},{"g":"Bairros de Guarulhos","n":"Bom Clima (Guarulhos)","lat":-23.461,"lon":-46.535},{"g":"Bairros de Guarulhos","n":"Centro (Guarulhos)","lat":-23.466,"lon":-46.533},{"g":"Bairros de Guarulhos","n":"Cocaia (Guarulhos)","lat":-23.441,"lon":-46.505},{"g":"Bairros de Guarulhos","n":"Gopouva (Guarulhos)","lat":-23.466,"lon":-46.545},{"g":"Bairros de Guarulhos","n":"Jardim Guarulhos (Guarulhos)","lat":-23.477,"lon":-46.545},{"g":"Bairros de Guarulhos","n":"Jardim Santa Mena (Guarulhos)","lat":-23.458,"lon":-46.555},{"g":"Bairros de Guarulhos","n":"Jardim São João (Guarulhos)","lat":-23.43,"lon":-46.445},{"g":"Bairros de Guarulhos","n":"Jardim Zaira (Guarulhos)","lat":-23.47,"lon":-46.55},{"g":"Bairros de Guarulhos","n":"Macedo (Guarulhos)","lat":-23.487,"lon":-46.52},{"g":"Bairros de Guarulhos","n":"Taboão (Guarulhos)","lat":-23.425,"lon":-46.515},{"g":"Bairros de Guarulhos","n":"Vila Pedro Moreira (Guarulhos)","lat":-23.472,"lon":-46.54},{"g":"Bairros de Guarulhos","n":"Vila Progresso (Guarulhos)","lat":-23.475,"lon":-46.535},{"g":"Bairros de Guarulhos","n":"Vila São João (Guarulhos)","lat":-23.463,"lon":-46.52},{"g":"Bairros de Guarulhos","n":"Vila das Palmeiras (Guarulhos)","lat":-23.465,"lon":-46.528},{"g":"Bairros de São Paulo","n":"Aclimação","lat":-23.572,"lon":-46.63},{"g":"Bairros de São Paulo","n":"Artur Alvim","lat":-23.54,"lon":-46.483},{"g":"Bairros de São Paulo","n":"Bela Vista","lat":-23.56,"lon":-46.645},{"g":"Bairros de São Paulo","n":"Cerqueira César","lat":-23.561,"lon":-46.664},{"g":"Bairros de São Paulo","n":"Cidade Monções","lat":-23.607,"lon":-46.688},{"g":"Bairros de São Paulo","n":"Cidade Mãe do Céu","lat":-23.548,"lon":-46.573},{"g":"Bairros de São Paulo","n":"Guaianases","lat":-23.542,"lon":-46.412},{"g":"Bairros de São Paulo","n":"Higienópolis","lat":-23.543,"lon":-46.655},{"g":"Bairros de São Paulo","n":"Ipiranga","lat":-23.588,"lon":-46.607},{"g":"Bairros de São Paulo","n":"Itaim Paulista","lat":-23.5,"lon":-46.398},{"g":"Bairros de São Paulo","n":"Itaquera","lat":-23.539,"lon":-46.455},{"g":"Bairros de São Paulo","n":"Jardim Everest","lat":-23.583,"lon":-46.707},{"g":"Bairros de São Paulo","n":"Jardim Helena","lat":-23.486,"lon":-46.418},{"g":"Bairros de São Paulo","n":"Jardim Pedro José Nunes","lat":-23.505,"lon":-46.462},{"g":"Bairros de São Paulo","n":"Jardim Robru","lat":-23.52,"lon":-46.405},{"g":"Bairros de São Paulo","n":"Jardim São Paulo","lat":-23.492,"lon":-46.617},{"g":"Bairros de São Paulo","n":"Lapa","lat":-23.522,"lon":-46.702},{"g":"Bairros de São Paulo","n":"Liberdade","lat":-23.558,"lon":-46.635},{"g":"Bairros de São Paulo","n":"Pacaembu","lat":-23.542,"lon":-46.665},{"g":"Bairros de São Paulo","n":"Parque Boturussu","lat":-23.503,"lon":-46.478},{"g":"Bairros de São Paulo","n":"Parque Paulistano","lat":-23.492,"lon":-46.44},{"g":"Bairros de São Paulo","n":"Parque da Mooca","lat":-23.565,"lon":-46.588},{"g":"Bairros de São Paulo","n":"Penha","lat":-23.527,"lon":-46.543},{"g":"Bairros de São Paulo","n":"Pinheiros","lat":-23.566,"lon":-46.69},{"g":"Bairros de São Paulo","n":"Ponte Rasa","lat":-23.508,"lon":-46.496},{"g":"Bairros de São Paulo","n":"Quarta Parada","lat":-23.557,"lon":-46.584},{"g":"Bairros de São Paulo","n":"República","lat":-23.543,"lon":-46.642},{"g":"Bairros de São Paulo","n":"Santana","lat":-23.5,"lon":-46.628},{"g":"Bairros de São Paulo","n":"Santo Amaro","lat":-23.652,"lon":-46.708},{"g":"Bairros de São Paulo","n":"São Mateus","lat":-23.608,"lon":-46.477},{"g":"Bairros de São Paulo","n":"São Miguel Paulista","lat":-23.498,"lon":-46.444},{"g":"Bairros de São Paulo","n":"Tatuapé","lat":-23.54,"lon":-46.576},{"g":"Bairros de São Paulo","n":"Tucuruvi","lat":-23.477,"lon":-46.603},{"g":"Bairros de São Paulo","n":"Vila Alpina","lat":-23.59,"lon":-46.56},{"g":"Bairros de São Paulo","n":"Vila Americana","lat":-23.497,"lon":-46.443},{"g":"Bairros de São Paulo","n":"Vila Azevedo","lat":-23.543,"lon":-46.57},{"g":"Bairros de São Paulo","n":"Vila Doutor Eiras","lat":-23.497,"lon":-46.446},{"g":"Bairros de São Paulo","n":"Vila Jaguara","lat":-23.51,"lon":-46.742},{"g":"Bairros de São Paulo","n":"Vila Leopoldina","lat":-23.527,"lon":-46.735},{"g":"Bairros de São Paulo","n":"Vila Maria","lat":-23.512,"lon":-46.585},{"g":"Bairros de São Paulo","n":"Vila Mariana","lat":-23.589,"lon":-46.634},{"g":"Bairros de São Paulo","n":"Vila Matilde","lat":-23.534,"lon":-46.529},{"g":"Bairros de São Paulo","n":"Vila Olímpia","lat":-23.596,"lon":-46.686},{"g":"Bairros de São Paulo","n":"Vila Princesa Isabel","lat":-23.541,"lon":-46.414},{"g":"Bairros de São Paulo","n":"Vila Zilda","lat":-23.536,"lon":-46.566}];
+const DEF_LOC={nome:'Rua Ana Soares Barcelos (Vila Venditti, Guarulhos)',lat:-23.49102,lon:-46.54403};
+const getLoc=()=>{ const p=(typeof Store!=='undefined')&&Store.list('prefs').find(x=>x.id==='local'); return (p&&typeof p.lat==='number')?p:DEF_LOC; };
+function km(r){ const L=getLoc(), R=6371, toR=Math.PI/180; const dLa=(r.lat-L.lat)*toR, dLo=(r.lon-L.lon)*toR;
+  const a=Math.sin(dLa/2)**2+Math.cos(L.lat*toR)*Math.cos(r.lat*toR)*Math.sin(dLo/2)**2; return 2*R*Math.asin(Math.sqrt(a)); }
+const kmTxt=r=>{ const k=km(r); if(k<0.6) return 'mesmo bairro'; return '≈ '+(k<10?k.toFixed(1).replace('.',','):Math.round(k))+' km'; };
+
+const $=s=>document.querySelector(s);
+const el=(t,c,txt)=>{const e=document.createElement(t); if(c) e.className=c; if(txt!=null) e.textContent=txt; return e;};
+const today=()=>{const d=new Date(); d.setMinutes(d.getMinutes()-d.getTimezoneOffset()); return d.toISOString().slice(0,10);};
+const fmt=iso=>{ if(!iso) return '—'; const [y,m,d]=iso.split('-'); return d+'/'+m+'/'+y; };
+const pd=iso=>{const [y,m,d]=iso.split('-').map(Number); return new Date(y,m-1,d);};
+const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+function addBiz(isoD,n){ const d=pd(isoD); let k=0; while(k<n){ d.setDate(d.getDate()+1); const w=d.getDay(); if(w&&w<6) k++; } return iso(d); }
+function bizBetween(a,b){ // business days from a (exclusive) to b (inclusive), negative if b<a
+  let s=pd(a), e=pd(b), sign=1; if(e<s){[s,e]=[e,s]; sign=-1;} let k=0; const d=new Date(s);
+  while(d<e){ d.setDate(d.getDate()+1); const w=d.getDay(); if(w&&w<6) k++; } return k*sign; }
+function prazoInfo(a){
+  const n=+a.prazo||0; if(!n||!a.pedido||a.status!=='pedido') return null;
+  const lim=addBiz(a.pedido,n); const rest=bizBetween(today(),lim);
+  if(rest<0) return {cls:'bad',txt:'Prazo ANS vencido em '+fmt(lim)+': cabe reclamação'};
+  if(rest<=3) return {cls:'warn',txt:'Prazo ANS até '+fmt(lim)+' ('+rest+' dia'+(rest===1?'':'s')+' út. restante'+(rest===1?'':'s')+')'};
+  return {cls:'',txt:'Prazo ANS até '+fmt(lim)+' ('+rest+' dias úteis)'};
+}
+
+/* ---------- storage: shared db when available, browser otherwise ---------- */
+const Store={mode:'local',db:null,subs:{},cache:{agenda:[],protocolos:[],prefs:[]},
+  lsGet(c){ try{return JSON.parse(localStorage.getItem('gp_'+c)||'[]');}catch(e){return [];} },
+  lsSet(c,v){ try{localStorage.setItem('gp_'+c,JSON.stringify(v));}catch(e){} },
+  init(){
+    for(const c of ['agenda','protocolos','prefs']){ this.cache[c]=this.lsGet(c); }
+    renderAll();
+    const use=window.claude&&window.claude.use;
+    if(!use){ this.showBanner(); return; }
+    window.claude.use('db').then(db=>{
+      if(!db){ this.showBanner(); return; }
+      this.db=db; this.mode='db'; $('#storeBanner').hidden=true;
+      for(const c of ['agenda','protocolos','prefs']){
+        db.collection(c).onSnapshot(s=>{ this.cache[c]=s.docs.map(d=>({id:d.id,...d.data()})); renderAll(); },
+          ()=>{ this.mode='local'; this.showBanner(); });
+      }
+    }).catch(()=>this.showBanner());
+  },
+  showBanner(){ const b=$('#storeBanner'); b.textContent='Os registros ficam salvos só neste navegador.'; b.hidden=false; },
+  list(c){ return this.cache[c]||[]; },
+  newId(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,7); },
+  async save(c,id,obj){
+    if(this.mode==='db'){ try{ await this.db.doc(c+'/'+id).set(obj); return; }catch(e){ alertMsg('Não foi possível salvar agora. Tente de novo em instantes.'); return; } }
+    const arr=this.cache[c].filter(x=>x.id!==id); arr.push({id,...obj}); this.cache[c]=arr; this.lsSet(c,arr); renderAll();
+  },
+  async remove(c,id){
+    if(this.mode==='db'){ try{ await this.db.doc(c+'/'+id).delete(); }catch(e){ alertMsg('Não foi possível excluir agora.'); } return; }
+    this.cache[c]=this.cache[c].filter(x=>x.id!==id); this.lsSet(c,this.cache[c]); renderAll();
+  }
+};
+function alertMsg(m){ const b=$('#storeBanner'); b.textContent=m; b.hidden=false; setTimeout(()=>{ if(Store.mode==='db') b.hidden=true; },4000); }
+const favSet=()=>new Set((Store.list('prefs').find(p=>p.id==='favoritos')||{}).ids||[]);
+async function toggleFav(id){ const s=favSet(); s.has(id)?s.delete(id):s.add(id); await Store.save('prefs','favoritos',{ids:[...s]}); }
+
+/* ---------- tabs ---------- */
+let tab='inicio'; try{ tab=localStorage.getItem('gp_tab')||'inicio'; }catch(e){}
+function setTab(t){ tab=t; document.querySelectorAll('nav.tabs button').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===t));
+  ['inicio','rede','agenda','protocolos'].forEach(k=>$('#p-'+k).hidden=k!==t); try{localStorage.setItem('gp_tab',t);}catch(e){} }
+document.querySelectorAll('nav.tabs button').forEach(b=>b.onclick=()=>setTab(b.dataset.tab));
+
+/* ---------- rede ---------- */
+const F={tipo:'',reg:'',esp:'',txt:'',fav:false,view:'cards',sort:'dist'};
+try{ Object.assign(F,JSON.parse(localStorage.getItem('gp_f')||'{}')); }catch(e){}
+const saveF=()=>{ try{localStorage.setItem('gp_f',JSON.stringify(F));}catch(e){} };
+const norm=s=>s.normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();
+function matches(r,skip){
+  const fav=favSet();
+  if(skip!=='tipo'&&F.tipo&&r.tipo!==F.tipo) return false;
+  if(skip!=='reg'&&F.reg&&r.reg!==F.reg) return false;
+  if(skip!=='esp'&&F.esp&&!r.esp.includes(F.esp)) return false;
+  if(F.fav&&!fav.has(r.id)) return false;
+  if(F.txt){ const q=norm(F.txt); if(!norm(r.nome+' '+r.bairro+' '+r.end+' '+r.cidade+' '+r.esp.join(' ')).includes(q)) return false; }
+  return true;
+}
+function pillRow(box,items,key){
+  box.innerHTML='';
+  for(const it of items){ const b=el('button','pill',it.n); b.type='button';
+    const c=DATA.filter(r=>(!it.k||r[key==='tipo'?'tipo':'reg']===it.k)&&matches(r,key)).length;
+    b.append(el('span','n',c)); b.setAttribute('aria-pressed',F[key]===it.k);
+    b.onclick=()=>{ F[key]=it.k; if(key==='tipo') F.esp=''; saveF(); renderRede(); }; box.append(b); }
+}
+function fillEsp(){
+  const s=$('#fEsp'); const pool=DATA.filter(r=>!F.tipo||r.tipo===F.tipo);
+  const all=[...new Set(pool.flatMap(r=>r.esp))].sort((a,b)=>a.localeCompare(b,'pt'));
+  if(F.esp&&!all.includes(F.esp)) F.esp='';
+  s.innerHTML=''; const o0=el('option',null,'Todas as especialidades e exames'); o0.value=''; s.append(o0);
+  all.forEach(e=>{ const o=el('option',null,e); o.value=e; s.append(o); }); s.value=F.esp;
+}
+$('#fEsp').onchange=e=>{F.esp=e.target.value; saveF(); renderRede();};
+let tT; $('#fTxt').oninput=e=>{ clearTimeout(tT); tT=setTimeout(()=>{F.txt=e.target.value.trim(); saveF(); renderRede();},180); };
+$('#fFav').onchange=e=>{F.fav=e.target.checked; saveF(); renderRede();};
+document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>{F.view=b.dataset.view; saveF(); renderRede();});
+document.querySelectorAll('[data-sort]').forEach(b=>b.onclick=()=>{F.sort=b.dataset.sort; saveF(); renderRede();});
+function fillPlaces(){ const s=$('#loc_sel'); s.innerHTML=''; const groups={};
+  PLACES.forEach((p,i)=>{ if(!groups[p.g]){ groups[p.g]=document.createElement('optgroup'); groups[p.g].label=p.g; s.append(groups[p.g]); }
+    const o=el('option',null,p.n); o.value=String(i); groups[p.g].append(o); });
+  const o=el('option',null,'Endereço exato (coordenadas abaixo)'); o.value='custom'; s.append(o); }
+let found=null, sampleFn=null, findCtl=null;
+if(window.claude&&window.claude.use){ window.claude.use('sample').then(f=>{ sampleFn=f; if(!f) noAuto(); }).catch(noAuto); } else noAuto();
+function noAuto(){ sampleFn=null; $('#loc_find').textContent='Abrir no Maps'; $('#loc_hint').textContent='A busca automática não está disponível aqui. Localizar abre o endereço no Google Maps, e de lá você copia as coordenadas para o campo abaixo.'; }
+function parseCoord(txt){ const s=String(txt||'');
+  const dms=s.match(/(\d{1,2})\s*°\s*(\d{1,2})\s*['′]\s*([\d.,]+)\s*(?:"|″|'')?\s*([NSns])[\s,;]*(\d{1,3})\s*°\s*(\d{1,2})\s*['′]\s*([\d.,]+)\s*(?:"|″|'')?\s*([EWOLewol])/);
+  if(dms){ const f=(d,m,x)=>+d+ +m/60+parseFloat(x.replace(',','.'))/3600; let la=f(dms[1],dms[2],dms[3]), lo=f(dms[5],dms[6],dms[7]);
+    if(/[Ss]/.test(dms[4])) la=-la; if(/[WwOo]/.test(dms[8])) lo=-lo;
+    if(la<-19&&la>-26&&lo<-44&&lo>-54) return {lat:+la.toFixed(5),lon:+lo.toFixed(5)}; }
+  let m=s.match(/!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/)||s.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/)||s.match(/[?&](?:q|query|ll)=(-?\d+\.\d+)(?:,|%2C)\s*(-?\d+\.\d+)/i)
+    ||s.replace(/[()]/g,'').match(/(-?\d+(?:[.,]\d+)?)\s*[,; ]\s*(-?\d+(?:[.,]\d+)?)/);
+  if(!m) return null; const la=parseFloat(m[1].replace(',','.')), lo=parseFloat(m[2].replace(',','.'));
+  if(!(la<-19&&la>-26&&lo<-44&&lo>-54)) return null; return {lat:+la.toFixed(5),lon:+lo.toFixed(5)}; }
+const gmLink=(la,lo)=>'https://www.google.com/maps?q='+la+','+lo;
+function showRes(html,err){ $('#loc_hint').hidden=true; const r=$('#loc_res'); r.className='locres'+(err?' err':''); r.innerHTML=''; r.append(...html); r.hidden=false; }
+$('#locBtn').onclick=()=>{ const L=getLoc(); const i=PLACES.findIndex(p=>p.n===L.nome&&p.lat===L.lat&&p.lon===L.lon);
+  found=null; $('#loc_res').hidden=true; $('#loc_hint').hidden=false; $('#loc_addr').value='';
+  $('#loc_sel').value=i>=0?String(i):'custom'; $('#loc_adv').open=false; $('#loc_coord').value=i<0?(L.lat+', '+L.lon):''; $('#loc_nome').value=i<0?L.nome:'';
+  $('#loc_err').hidden=true; $('#dlgLoc').showModal(); setTimeout(()=>$('#loc_addr').focus(),50); };
+$('#loc_sel').onchange=()=>{ found=null; $('#loc_res').hidden=true; if($('#loc_sel').value==='custom') $('#loc_adv').open=true; else $('#loc_coord').value=''; };
+$('#loc_coord').oninput=()=>{ const c=parseCoord($('#loc_coord').value); if(c){ $('#loc_sel').value='custom'; found=null; } };
+$('#loc_addr').addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); $('#loc_find').click(); } });
+const CITIES=[
+ {n:'Guarulhos',ceps:[[7000,7399]],lat:-23.4628,lon:-46.5333,box:[-23.53,-23.32,-46.59,-46.38],k:/guarulhos/},
+ {n:'Arujá',ceps:[[7400,7499]],lat:-23.396,lon:-46.321,box:[-23.45,-23.32,-46.38,-46.24],k:/aruj[aá]/},
+ {n:'Ferraz de Vasconcelos',ceps:[[8500,8549]],lat:-23.541,lon:-46.369,box:[-23.59,-23.50,-46.41,-46.33],k:/ferraz/},
+ {n:'Poá',ceps:[[8550,8569]],lat:-23.529,lon:-46.345,box:[-23.56,-23.50,-46.38,-46.31],k:/\bpo[aá]\b/},
+ {n:'Itaquaquecetuba',ceps:[[8570,8599]],lat:-23.486,lon:-46.348,box:[-23.53,-23.39,-46.40,-46.29],k:/itaquaquecetuba|itaqu[aá]\b/},
+ {n:'Suzano',ceps:[[8600,8699]],lat:-23.543,lon:-46.311,box:[-23.76,-23.47,-46.37,-46.21],k:/suzano/},
+ {n:'Mogi das Cruzes',ceps:[[8700,8899]],lat:-23.522,lon:-46.188,box:[-23.76,-23.34,-46.34,-45.94],k:/mogi das cruzes|\bmogi\b/},
+ {n:'São Paulo',ceps:[[1000,5999],[8000,8499]],lat:-23.5505,lon:-46.6333,box:[-24.01,-23.35,-46.83,-46.36],k:/s[aã]o paulo(?!\s*-\s*sp\s*$)/}
+];
+function cityOf(q){ const m=q.match(/\b(\d{5})-?(\d{3})\b/);
+  if(m){ const n=parseInt(m[1],10); const c=CITIES.find(c=>c.ceps.some(([a,b])=>n>=a&&n<=b)); if(c) return {...c,cep:m[1]+'-'+m[2]}; }
+  const s=q.toLowerCase(); const c=CITIES.find(c=>c.k.test(s)); return c?{...c}:null; }
+const inBox=(c,la,lo)=>la>=c.box[0]&&la<=c.box[1]&&lo>=c.box[2]&&lo<=c.box[3];
+$('#loc_find').onclick=async()=>{
+  const q=$('#loc_addr').value.trim(); if(!q){ $('#loc_addr').focus(); return; }
+  const direct=parseCoord(q); if(direct){ found={...direct,local:q}; acceptFound('Coordenadas reconhecidas'); return; }
+  if(!sampleFn){ window.open('https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(q+', SP'),'_blank'); $('#loc_adv').open=true;
+    showRes([el('span',null,'Se o Google Maps não abriu, use o link "Abrir o Google Maps" abaixo.')]); return; }
+  findCtl?.abort(); findCtl=new AbortController(); const btn=$('#loc_find'); btn.disabled=true; btn.textContent='Buscando...';
+  showRes([el('span',null,'Procurando o endereço... pode levar alguns segundos.')]);
+  try{
+    const city=cityOf(q);
+    const hint=city?('Este endereço fica em '+city.n+'/SP'+(city.cep?' (o CEP '+city.cep+' pertence a '+city.n+')':'')+'. ')
+      :'O endereço fica na Grande São Paulo. ';
+    const r=await sampleFn.json('Você é um geocodificador para a Grande São Paulo (Brasil). '+hint
+      +'Estime a latitude e longitude do endereço ou CEP abaixo, usando o que você sabe sobre ruas, bairros e faixas de CEP. '
+      +'Se não souber a rua exata, use o centro do bairro (precisao "bairro"); se nem o bairro, o centro da cidade (precisao "cidade"). '
+      +'Nunca troque de cidade. Responda só com JSON: '
+      +'{"ok":true,"lat":-23.46,"lon":-46.53,"local":"Rua, bairro, cidade","precisao":"rua|bairro|cidade"}. '
+      +'Se não reconhecer nada, responda {"ok":false}.\n\nEndereço: '+q.slice(0,300),{signal:findCtl.signal});
+    let la=Number(r&&r.lat), lo=Number(r&&r.lon), local=String((r&&r.local)||q).slice(0,120), prec=String((r&&r.precisao)||'');
+    const valid=r&&r.ok!==false&&la<-19&&la>-26&&lo<-44&&lo>-54;
+    let note='';
+    if(city&&(!valid||!inBox(city,la,lo))){ la=city.lat; lo=city.lon; prec='cidade'; local=(valid?local.split(',')[0]+', ':'')+city.n;
+      note='A busca automática não achou a rua. Usei o centro de '+city.n+', o que pode dar alguns km de diferença. Para acertar: abra o endereço no Google Maps pelo link abaixo, clique com o botão direito no ponto, copie os números e cole no campo "Colar coordenadas".'; }
+    if(!valid&&!city){ found=null; showRes([el('span',null,'Não encontrei esse endereço. Inclua a rua, o bairro e a cidade, ou escolha na lista abaixo.')],true); }
+    else { found={lat:+la.toFixed(5),lon:+lo.toFixed(5),local,precisao:prec,note,q,city:city&&city.n}; acceptFound(); }
+  }catch(e){ if(e&&e.code==='cancelled') return; found=null;
+    if(e&&['not_granted','sampling_disabled','not_declared','capability_disabled','capability_removed'].includes(e.code)){ noAuto(); showRes([el('span',null,'A busca automática foi recusada. Use "Abrir no Maps" ou escolha na lista.')],true); }
+    else if(e&&e.code==='rate_limited') showRes([el('span',null,'Muitas buscas seguidas. Espere um pouco e tente de novo.')],true);
+    else showRes([el('span',null,'A busca falhou. Tente de novo.')],true); }
+  finally{ btn.disabled=false; if(sampleFn) btn.textContent='Localizar'; }
+};
+function acceptFound(title){ $('#loc_sel').value='custom'; $('#loc_coord').value=found.lat+', '+found.lon; if(!$('#loc_nome').value.trim()) $('#loc_nome').value=found.note?found.q:found.local;
+  const a=el('a',null,found.note?'Buscar este endereço no Google Maps':'Conferir no Google Maps'); a.href=found.note?('https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(found.q)):gmLink(found.lat,found.lon); a.target='_blank'; a.rel='noopener';
+  const prec=found.precisao==='cidade'?' Localização aproximada (só a cidade): inclua a rua e o bairro para ficar mais preciso.':found.precisao==='bairro'?' Localização aproximada (bairro).':'';
+  if(found.note){ $('#loc_adv').open=true; $('#loc_coord').value=''; $('#loc_nome').value=$('#loc_nome').value||found.q; }
+  const parts=[el('b',null,title||(found.note?('Localização aproximada: centro de '+found.city):('Encontrado: '+found.local))), el('span',null,'Coordenadas '+found.lat+', '+found.lon+'.'+(found.note?'':prec))]; if(found.note) parts.push(el('span',null,found.note)); parts.push(a); showRes(parts); }
+$('#fLoc').onsubmit=async ev=>{ ev.preventDefault(); let L;
+  if($('#loc_sel').value==='custom'){ const c=found||parseCoord($('#loc_coord').value);
+    if(!c){ const er=$('#loc_err'); er.textContent='Localização não reconhecida. Toque em Localizar, escolha na lista ou cole coordenadas no formato -23.4861, -46.3486.'; er.hidden=false; return; }
+    L={nome:$('#loc_nome').value.trim()||c.local||'Endereço informado',lat:c.lat,lon:c.lon};
+  } else { const p=PLACES[+$('#loc_sel').value]; L={nome:$('#loc_nome').value.trim()||p.n,lat:p.lat,lon:p.lon}; }
+  $('#dlgLoc').close(); F.sort='dist'; saveF(); await Store.save('prefs','local',L); };
+function agendarDe(r){ const ger=r.esp.includes('Geriatria'); openAg(null,{prest:r.nome+' — '+r.bairro,esp:F.esp||(ger?'Geriatria':''),tipo:r.tipo==='lab'?'Exame':'Consulta',prazo:r.tipo==='lab'?'10':'14'}); }
+function copyBtn(txt,target){ const cp=el('button','btn ghost sm','Copiar'); cp.type='button';
+  cp.onclick=async()=>{ try{ await navigator.clipboard.writeText(txt); cp.textContent='Copiado'; }catch(e){ const s=getSelection(),rg=document.createRange(); rg.selectNodeContents(target); s.removeAllRanges(); s.addRange(rg); cp.textContent='Selecionado'; } setTimeout(()=>cp.textContent='Copiar',1500); }; return cp; }
+function listTable(items,fav){
+  const w=el('div','tbl'); const t=el('table','lt'); const th=el('thead'); const hr=el('tr');
+  ['','Prestador','Bairro','Telefone','Especialidades / exames',''].forEach(x=>hr.append(el('th',null,x))); th.append(hr); t.append(th);
+  const tb=el('tbody');
+  items.forEach(r=>{ const tr=el('tr'); if(r.esp.includes('Geriatria')) tr.className='ger';
+    const s=el('td'); const st=el('button','star',fav.has(r.id)?'★':'☆'); st.type='button'; st.setAttribute('aria-pressed',fav.has(r.id)); st.setAttribute('aria-label','Favoritar'); st.onclick=()=>toggleFav(r.id); s.append(st);
+    const n=el('td'); n.append(el('b',null,r.nome)); n.append(el('div','tag',TIPO_N[r.tipo]));
+    const b=el('td'); b.append(el('div',null,r.bairro)); b.append(el('div','muted small',r.cidade)); b.append(el('span','km',kmTxt(r)));
+    const tl=el('td','num'); const sp=el('div',null,r.tel||'—'); tl.append(sp); if(r.tel) tl.append(copyBtn(r.tel,sp));
+    const es=el('td','esp'); const ord=[...r.esp].sort((x,y)=>(y==='Geriatria')-(x==='Geriatria')||(y===F.esp)-(x===F.esp)||(y===CG)-(x===CG));
+    const full=ord.join(' · '); const short=ord.slice(0,4).join(' · ');
+    if(!ord.length) es.append(el('span','none','Não informadas'));
+    else { const txt=el('span',null,ord.length>4?short:full); es.append(txt);
+      if(ord.length>4){ const m=el('button','more','+'+(ord.length-4)+' mais'); m.type='button'; m.onclick=()=>{txt.textContent=full; m.remove();}; es.append(' ',m); } }
+    const a=el('td'); const ag=el('button','btn ghost sm','Agendar'); ag.type='button'; ag.onclick=()=>agendarDe(r); a.append(ag);
+    tr.append(s,n,b,tl,es,a); tb.append(tr); });
+  t.append(tb); w.append(t); return w;
+}
+
+function card(r,fav){
+  const ger=r.esp.includes('Geriatria');
+  const c=el('article','card'+(ger?' ger':''));
+  const top=el('div','card-top'); const t=el('div');
+  t.append(el('div','tag',TIPO_N[r.tipo]), el('h3',null,r.nome));
+  const st=el('button','star',fav.has(r.id)?'★':'☆'); st.type='button'; st.setAttribute('aria-pressed',fav.has(r.id)); st.setAttribute('aria-label','Favoritar');
+  st.onclick=()=>toggleFav(r.id);
+  top.append(t,st); c.append(top);
+  const a=el('div','addr'); a.append(el('span','km',kmTxt(r)),' '); a.append(r.end+' · '); a.append(el('b',null,r.bairro)); a.append(' · '+r.cidade+(r.cep?' · CEP '+r.cep:'')); c.append(a);
+  const tl=el('div','tel'); const sp=el('span',null,r.tel||'Telefone não informado'); tl.append(sp);
+  if(r.tel){ const cp=el('button','btn ghost sm','Copiar'); cp.type='button';
+    cp.onclick=async()=>{ try{ await navigator.clipboard.writeText(r.tel); cp.textContent='Copiado'; }catch(e){ const s=getSelection(),rg=document.createRange(); rg.selectNodeContents(sp); s.removeAllRanges(); s.addRange(rg); cp.textContent='Selecionado'; } setTimeout(()=>cp.textContent='Copiar',1500); };
+    tl.append(cp); }
+  const ag=el('button','btn ghost sm','Agendar'); ag.type='button'; ag.onclick=()=>openAg(null,{prest:r.nome+' — '+r.bairro,esp:F.esp||(ger?'Geriatria':''),tipo:r.tipo==='lab'?'Exame':'Consulta',prazo:r.tipo==='lab'?'10':'14'}); tl.append(ag);
+  c.append(tl);
+  const ch=el('div','chips');
+  if(!r.esp.length) ch.append(el('span','none','Especialidades não informadas no guia'));
+  const ord=[...r.esp].sort((x,y)=>(y==='Geriatria')-(x==='Geriatria')||(y===F.esp)-(x===F.esp)||(y===CG)-(x===CG));
+  const LIM=8; const draw=(n)=>{ ch.innerHTML=''; ord.slice(0,n).forEach(e=>ch.append(el('span','chip'+(e==='Geriatria'?' g':(e===F.esp||e===CG)?' hl':''),e)));
+    if(ord.length>n){ const m=el('button','more','+'+(ord.length-n)+' mais'); m.type='button'; m.onclick=()=>draw(ord.length); ch.append(m);} };
+  if(r.esp.length) draw(LIM);
+  c.append(ch); return c;
+}
+function renderRede(){
+  pillRow($('#tipoPills'),[{k:'',n:'Todos'},...TIPOS],'tipo');
+  pillRow($('#regPills'),[{k:'',n:'Todas as regiões'},...REG],'reg');
+  fillEsp(); if(document.activeElement!==$('#fTxt')) $('#fTxt').value=F.txt; $('#fFav').checked=F.fav;
+  const fav=favSet(); const box=$('#redeList'); box.innerHTML=''; let tot=0;
+  const draw=(title,desc,items)=>{ const s=el('section','reg'); s.style.marginBottom='22px';
+    const h=el('div','reg-head'); h.append(el('h2',null,title+' ('+items.length+')'), el('small',null,desc));
+    let g; if(F.view==='lista'){ g=listTable(items,fav); } else { g=el('div','cards'); items.forEach(i=>g.append(card(i,fav))); } s.append(h,g); box.append(s); };
+  if(F.sort==='dist'){
+    const items=DATA.filter(r=>(!F.reg||r.reg===F.reg)&&matches(r)).sort((a,b)=>km(a)-km(b)||a.nome.localeCompare(b.nome,'pt'));
+    tot=items.length; if(tot) draw('Mais perto primeiro','Distância em linha reta a partir de '+getLoc().nome,items);
+  } else for(const R of REG){ if(F.reg&&F.reg!==R.k) continue;
+    const items=DATA.filter(r=>r.reg===R.k&&matches(r)); if(!items.length) continue; tot+=items.length;
+    items.sort((a,b)=>(fav.has(b.id)-fav.has(a.id))||km(a)-km(b));
+    draw(R.n,R.d,items); }
+  document.querySelectorAll('[data-sort]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.sort===(F.sort||'dist')));
+  document.querySelectorAll('[data-view]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.view===(F.view||'cards')));
+  if(!tot) box.append(el('p','empty','Nenhum prestador com esses filtros. Tente "Todas as regiões" ou limpe a busca.'));
+  $('#count').textContent=tot+' de '+DATA.length+' prestadores';
+  $('#n-rede').textContent=DATA.length;
+}
+
+/* ---------- agenda ---------- */
+let stF='ativos';
+function sortAg(arr){ return arr.sort((a,b)=>((a.data||'9999')+(a.hora||'')).localeCompare((b.data||'9999')+(b.hora||''))); }
+function renderAgenda(){
+  const all=Store.list('agenda');
+  const box=$('#stPills'); box.innerHTML='';
+  const opts=[{k:'ativos',n:'Em aberto'},{k:'realizado',n:'Realizados'},{k:'cancelado',n:'Cancelados'},{k:'todos',n:'Todos'}];
+  const cnt=k=>all.filter(a=>k==='todos'||(k==='ativos'?(a.status==='pedido'||a.status==='agendado'):a.status===k)).length;
+  opts.forEach(o=>{ const b=el('button','pill',o.n); b.type='button'; b.append(el('span','n',cnt(o.k))); b.setAttribute('aria-pressed',stF===o.k); b.onclick=()=>{stF=o.k; renderAgenda();}; box.append(b); });
+  let rows=all.filter(a=>stF==='todos'||(stF==='ativos'?(a.status==='pedido'||a.status==='agendado'):a.status===stF));
+  rows=sortAg(rows); if(stF==='realizado') rows.reverse();
+  const L=$('#agendaList'); L.innerHTML='';
+  if(!rows.length){ L.append(el('p','empty',all.length?'Nada nesta situação.':'Nenhuma consulta ou exame ainda. Use "+ Nova consulta ou exame" ou o botão Agendar de um prestador na aba Rede.')); }
+  else{
+    const w=el('div','tbl'); const t=el('table'); const th=el('thead'); const hr=el('tr');
+    ['Data','Especialidade / exame','Prestador','Situação',''].forEach(x=>hr.append(el('th',null,x))); th.append(hr); t.append(th);
+    const tb=el('tbody');
+    rows.forEach(a=>{ const tr=el('tr');
+      const d=el('td','num'); d.append(a.data?fmt(a.data):'Sem data'); if(a.hora) d.append(el('div','muted small',a.hora));
+      const e=el('td'); e.append(el('b',null,a.esp||'—')); e.append(el('div','muted small',a.tipo+(a.prot?' · prot. '+a.prot:'')));
+      const p=el('td',null,a.prest||'—'); if(a.obs){ p.append(el('div','muted small',a.obs)); }
+      const s=el('td'); s.append(el('span','st '+a.status,ST[a.status]||a.status)); const pi=prazoInfo(a); if(pi) s.append(el('span','prazo '+pi.cls,pi.txt));
+      const x=el('td'); const b=el('button','btn ghost sm','Editar'); b.type='button'; b.onclick=()=>openAg(a); x.append(b);
+      tr.append(d,e,p,s,x); tb.append(tr); });
+    t.append(tb); w.append(t); L.append(w);
+  }
+  $('#n-agenda').textContent=all.filter(a=>a.status==='pedido'||a.status==='agendado').length;
+}
+function fillLists(){
+  const el1=$('#espList'); el1.innerHTML=''; [...new Set(DATA.flatMap(r=>r.esp))].sort((a,b)=>a.localeCompare(b,'pt')).forEach(e=>{const o=document.createElement('option'); o.value=e; el1.append(o);});
+  const el2=$('#prestList'); el2.innerHTML=''; DATA.forEach(r=>{const o=document.createElement('option'); o.value=r.nome+' — '+r.bairro; el2.append(o);});
+}
+let agEdit=null;
+function openAg(a,pre){
+  agEdit=a?a.id:null; const v=a||Object.assign({tipo:'Consulta',status:'pedido',prazo:'14',pedido:today()},pre||{});
+  $('#agTitle').textContent=a?'Editar compromisso':'Nova consulta ou exame';
+  $('#ag_tipo').value=v.tipo||'Consulta'; $('#ag_status').value=v.status||'pedido'; $('#ag_esp').value=v.esp||''; $('#ag_prest').value=v.prest||'';
+  $('#ag_prazo').value=String(v.prazo??'14'); $('#ag_pedido').value=v.pedido||''; $('#ag_data').value=v.data||''; $('#ag_hora').value=v.hora||'';
+  $('#ag_prot').value=v.prot||''; $('#ag_obs').value=v.obs||''; $('#agDel').hidden=!a; $('#dlgAg').showModal();
+}
+$('#ag_esp').addEventListener('change',()=>{ const e=$('#ag_esp').value; if(e===CG||/^(Pediatria|Ginecologia|Cirurgia Geral)$/.test(e)) $('#ag_prazo').value='7'; else if(/Análises Clínicas|Papanicolau/.test(e)) $('#ag_prazo').value='3'; });
+$('#ag_data').addEventListener('change',()=>{ if($('#ag_data').value&&$('#ag_status').value==='pedido') $('#ag_status').value='agendado'; });
+$('#fAg').onsubmit=async ev=>{ ev.preventDefault();
+  const o={tipo:$('#ag_tipo').value,status:$('#ag_status').value,esp:$('#ag_esp').value.trim(),prest:$('#ag_prest').value.trim(),prazo:$('#ag_prazo').value,
+    pedido:$('#ag_pedido').value,data:$('#ag_data').value,hora:$('#ag_hora').value,prot:$('#ag_prot').value.trim(),obs:$('#ag_obs').value.trim(),atualizado:new Date().toISOString()};
+  $('#dlgAg').close(); await Store.save('agenda',agEdit||Store.newId(),o); };
+let agDelArm=false;
+$('#agDel').onclick=async()=>{ if(!agDelArm){ agDelArm=true; $('#agDel').textContent='Confirmar exclusão'; setTimeout(()=>{agDelArm=false; $('#agDel').textContent='Excluir';},3000); return; }
+  agDelArm=false; $('#agDel').textContent='Excluir'; $('#dlgAg').close(); await Store.remove('agenda',agEdit); };
+
+/* ---------- protocolos ---------- */
+let prEdit=null;
+function openPr(p){ prEdit=p?p.id:null; const v=p||{data:today(),canal:'Central do plano',st:'aberto'};
+  $('#prTitle').textContent=p?'Editar protocolo':'Novo protocolo';
+  $('#pr_data').value=v.data||''; $('#pr_canal').value=v.canal||'Central do plano'; $('#pr_num').value=v.num||''; $('#pr_ass').value=v.ass||'';
+  $('#pr_resp').value=v.resp||''; $('#pr_st').value=v.st||'aberto'; $('#pr_at').value=v.at||''; $('#prDel').hidden=!p; $('#dlgPr').showModal(); }
+$('#fPr').onsubmit=async ev=>{ ev.preventDefault();
+  const o={data:$('#pr_data').value,canal:$('#pr_canal').value,num:$('#pr_num').value.trim(),ass:$('#pr_ass').value.trim(),resp:$('#pr_resp').value.trim(),st:$('#pr_st').value,at:$('#pr_at').value.trim()};
+  $('#dlgPr').close(); await Store.save('protocolos',prEdit||Store.newId(),o); };
+let prDelArm=false;
+$('#prDel').onclick=async()=>{ if(!prDelArm){ prDelArm=true; $('#prDel').textContent='Confirmar exclusão'; setTimeout(()=>{prDelArm=false; $('#prDel').textContent='Excluir';},3000); return; }
+  prDelArm=false; $('#prDel').textContent='Excluir'; $('#dlgPr').close(); await Store.remove('protocolos',prEdit); };
+const PST={aberto:['Em aberto','pedido'],resolvido:['Resolvido','realizado'],negado:['Negado','cancelado']};
+function renderProt(){
+  const all=Store.list('protocolos').slice().sort((a,b)=>(b.data||'').localeCompare(a.data||''));
+  const L=$('#protList'); L.innerHTML='';
+  if(!all.length){ L.append(el('p','empty','Nenhum protocolo anotado ainda.')); }
+  else{ const w=el('div','tbl'); const t=el('table'); const hr=el('tr');
+    ['Data','Canal','Protocolo','Assunto','Situação',''].forEach(x=>hr.append(el('th',null,x))); const th=el('thead'); th.append(hr); t.append(th);
+    const tb=el('tbody'); all.forEach(p=>{ const tr=el('tr');
+      const a=el('td'); a.append(el('b',null,p.ass)); if(p.resp) a.append(el('div','muted small',p.resp));
+      const s=el('td'); const ps=PST[p.st]||PST.aberto; s.append(el('span','st '+ps[1],ps[0]));
+      const x=el('td'); const b=el('button','btn ghost sm','Editar'); b.type='button'; b.onclick=()=>openPr(p); x.append(b);
+      tr.append(el('td','num',fmt(p.data)),el('td',null,p.canal+(p.at?' · '+p.at:'')),el('td','num',p.num||'—'),a,s,x); tb.append(tr); });
+    t.append(tb); w.append(t); L.append(w); }
+  $('#n-prot').textContent=all.length;
+}
+
+/* ---------- início ---------- */
+function renderNear(){
+  const L=getLoc(); $('#locName').textContent=L.nome; $('#nearTitle').textContent='Mais perto de '+L.nome;
+  const cats=[['Pronto-socorro',r=>r.esp.some(e=>/^Pronto Socorro( Adulto)?$/.test(e))],['Clínico geral',r=>r.esp.includes(CG)],['Geriatria',r=>r.esp.includes('Geriatria')],
+    ['Cardiologia',r=>r.esp.includes('Cardiologia')],['Exames de sangue',r=>r.esp.includes('Análises Clínicas')],['Exames de imagem',r=>r.esp.some(e=>/Tomografia|Ultrassonografia|Radiologia|Ressonância/.test(e))]];
+  const N=$('#nearList'); N.innerHTML='';
+  cats.forEach(([n,f])=>{ const r=DATA.filter(f).sort((a,b)=>km(a)-km(b))[0]; if(!r) return;
+    const it=el('div','item'); const m=el('div'); m.style.flex='1';
+    m.append(el('div','near-cat',n), el('b',null,r.nome)); m.append(el('div','muted small',r.bairro+' · '+r.cidade+(r.tel?' · '+r.tel:'')));
+    it.append(m, el('span','km',kmTxt(r))); N.append(it); });
+}
+function renderInicio(){
+  renderNear();
+  const ag=Store.list('agenda'); const t=today();
+  const next=sortAg(ag.filter(a=>a.status==='agendado'&&a.data&&a.data>=t)).slice(0,5);
+  const wait=ag.filter(a=>a.status==='pedido');
+  const late=wait.filter(a=>{const p=prazoInfo(a); return p&&p.cls==='bad';}).length;
+  const open=Store.list('protocolos').filter(p=>p.st==='aberto').length;
+  const S=$('#stats'); S.innerHTML='';
+  [[next.length,'agendados à frente'],[wait.length,'aguardando vaga'],[late,'com prazo ANS vencido'],[open,'protocolos em aberto']].forEach(([n,l])=>{ const d=el('div','stat'); d.append(el('b',null,n),el('span',null,l)); S.append(d); });
+  const N=$('#nextList'); N.innerHTML='';
+  if(!next.length) N.append(el('p','empty','Nada agendado.'));
+  next.forEach(a=>{ const it=el('div','item'); it.append(el('span','when',fmt(a.data)+(a.hora?' '+a.hora:'')));
+    const m=el('div'); m.style.flex='1'; m.append(el('b',null,a.esp), el('div','muted small',a.prest||'')); it.append(m);
+    const b=el('button','btn ghost sm','Abrir'); b.type='button'; b.onclick=()=>openAg(a); it.append(b); N.append(it); });
+  const W=$('#waitList'); W.innerHTML='';
+  if(!wait.length) W.append(el('p','empty','Nenhum pedido aguardando.'));
+  wait.forEach(a=>{ const it=el('div','item'); const m=el('div'); m.style.flex='1';
+    m.append(el('b',null,a.esp)); m.append(el('div','muted small','Pedido em '+fmt(a.pedido)+(a.prot?' · prot. '+a.prot:'')));
+    const p=prazoInfo(a); if(p) m.append(el('span','prazo '+p.cls,p.txt)); it.append(m);
+    const b=el('button','btn ghost sm','Abrir'); b.type='button'; b.onclick=()=>openAg(a); it.append(b); W.append(it); });
+}
+
+function renderAll(){ renderInicio(); renderAgenda(); renderProt(); renderRede(); }
+document.querySelectorAll('[data-new]').forEach(b=>b.onclick=()=>b.dataset.new==='agenda'?openAg(null):openPr(null));
+document.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>b.closest('dialog').close());
+fillLists(); fillPlaces(); setTab(tab); Store.init();
+</script>
+
+</body>
+</html>
