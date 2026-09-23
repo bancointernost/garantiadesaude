@@ -137,12 +137,30 @@ table.lt .btn.sm{margin-top:4px}
 .locbar .locacts{display:flex;gap:6px}
 .locbar .btn.sm{padding:2px 9px;font-size:.78rem}
 .locname{font-weight:700}
+@media (max-width:640px){
+  .tbl:has(table.rt){overflow:visible;background:none;border:0}
+  table.rt thead{display:none}
+  table.rt,table.rt tbody{display:block}
+  table.rt tr{display:grid;grid-template-columns:1fr auto;gap:4px 10px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:8px}
+  table.rt td{border:0;padding:0;min-width:0;overflow-wrap:anywhere}
+  table.rt .c-d{font-weight:700}
+  table.rt .c-s{grid-column:2;grid-row:1;text-align:right}
+  table.rt .c-e,table.rt .c-p,table.rt .c-c,table.rt .c-n{grid-column:1/-1}
+  table.rt .c-x{grid-column:1/-1;text-align:right}
+}
+.stsel{width:auto;min-width:220px}
+.wabox{display:grid;grid-template-columns:auto 1fr;gap:8px;align-items:center;background:var(--ok-soft);border-radius:8px;padding:8px 10px}
+@media (max-width:520px){.wabox{grid-template-columns:1fr}}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:50;background:var(--ink);color:var(--bg);border-radius:10px;padding:10px 14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;max-width:calc(100vw - 32px);box-shadow:0 6px 24px rgba(0,0,0,.25)}
+.toast a{background:#25D366;color:#0b2e17;font-weight:700;border-radius:8px;padding:6px 12px;text-decoration:none}
+.toast button{background:none;border:0;color:inherit;font:inherit;cursor:pointer;opacity:.7}
 dialog.dlg-sm{width:min(440px,calc(100vw - 32px))}
 dialog.dlg-sm form{padding:16px;gap:10px}
 dialog.dlg-sm h2{font-size:1.1rem}
 dialog.dlg-sm .gps{align-self:flex-start}
 dialog.dlg-sm .pair{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-dialog.dlg-sm .pair select:only-child,dialog.dlg-sm .pair select:first-child:has(+ [hidden]){grid-column:1/-1}
+dialog.dlg-sm .pair select:disabled{opacity:.6}
+@media (max-width:420px){dialog.dlg-sm .pair{grid-template-columns:1fr}}
 dialog.dlg-sm .adv{display:flex;flex-direction:column;gap:8px;margin-top:8px}
 dialog.dlg-sm summary{font-size:.85rem}
 .btn.gps::before{content:"";display:inline-block;width:.6em;height:.6em;border-radius:50%;border:2px solid currentColor;margin-right:6px;vertical-align:.05em}
@@ -231,8 +249,8 @@ button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-vis
   <!-- AGENDA -->
   <div class="panel" id="p-agenda" hidden>
     <div class="row between">
-      <div class="row" id="stPills" role="group" aria-label="Situação"></div>
-      <button class="btn" type="button" data-new="agenda">+ Nova consulta ou exame</button>
+      <select id="stSel" class="stsel" aria-label="Situação"></select>
+      <button class="btn sm" type="button" data-new="agenda">+ Novo</button>
     </div>
     <div id="agendaList"></div>
     <p class="note">Prazos máximos da ANS em dias úteis: consulta básica (clínico geral, pediatria, ginecologia, cirurgia geral) 7 · demais especialidades, geriatria inclusive, 14 · exames de laboratório 3 · outros exames e procedimentos 10. A conta pula sábados e domingos, mas não feriados.</p>
@@ -242,7 +260,7 @@ button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-vis
   <div class="panel" id="p-protocolos" hidden>
     <div class="row between">
       <p class="muted small">Anote toda ligação ao plano. A ANS pede o protocolo da operadora antes de abrir uma reclamação.</p>
-      <button class="btn" type="button" data-new="prot">+ Novo protocolo</button>
+      <button class="btn sm" type="button" data-new="prot">+ Novo</button>
     </div>
     <div id="protList"></div>
   </div>
@@ -264,6 +282,10 @@ button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-vis
       <label>Horário<input type="time" id="ag_hora"></label>
       <label class="full">Protocolo / nº da guia<input id="ag_prot"></label>
       <label class="full">Observações<textarea id="ag_obs" placeholder="Levar exames anteriores, jejum, quem acompanha..."></textarea></label>
+      <div class="full wabox">
+        <label class="chk"><input type="checkbox" id="ag_wa" checked> Enviar pelo WhatsApp ao salvar</label>
+        <input id="ag_wanum" inputmode="tel" placeholder="Número (opcional) ex.: 11 91234-5678" aria-label="Número do WhatsApp">
+      </div>
     </div>
     <div class="row between">
       <button type="button" class="btn danger" id="agDel" hidden>Excluir</button>
@@ -306,7 +328,10 @@ button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-vis
     </div>
     <p class="note" id="loc_hint" hidden></p>
     <div id="loc_res" class="locres" hidden></div>
-    <div class="pair"><select id="loc_sel" aria-label="Cidade"></select><select id="loc_bairro" aria-label="Bairro" hidden></select></div>
+    <div class="pair">
+      <label class="fl">Cidade<select id="loc_sel"></select></label>
+      <label class="fl">Bairro<select id="loc_bairro"></select></label>
+    </div>
     <button type="button" class="btn ghost sm gps" id="gpsBtn2" hidden>Usar a localização deste aparelho</button>
     <p class="note" id="gpsMsg" hidden></p>
     <details id="loc_adv">
@@ -325,6 +350,7 @@ button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-vis
   </form>
 </dialog>
 
+<div id="toast" class="toast" role="status" hidden></div>
 <datalist id="espList"></datalist>
 <datalist id="prestList"></datalist>
 
@@ -453,12 +479,12 @@ let tT; $('#fTxt').oninput=e=>{ clearTimeout(tT); tT=setTimeout(()=>{F.txt=e.tar
 $('#fFav').onchange=e=>{F.fav=e.target.checked; saveF(); renderRede();};
 document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>{F.view=b.dataset.view; saveF(); renderRede();});
 document.querySelectorAll('[data-sort]').forEach(b=>b.onclick=()=>{F.sort=b.dataset.sort; saveF(); renderRede();});
-function fillPlaces(){ const s=$('#loc_sel'); s.innerHTML=''; const o0=el('option',null,'Ou escolha a cidade'); o0.value=''; s.append(o0);
+function fillPlaces(){ const s=$('#loc_sel'); s.innerHTML=''; const o0=el('option',null,'Escolha a cidade'); o0.value=''; s.append(o0);
   PLACES.forEach((c,i)=>{ const o=el('option',null,c.n); o.value=String(i); s.append(o); }); fillBairros(); }
-function fillBairros(){ const b=$('#loc_bairro'); const c=PLACES[+$('#loc_sel').value]; b.innerHTML='';
-  if(!$('#loc_sel').value||!c||!c.b.length){ b.hidden=true; return; }
-  const o0=el('option',null,'Centro da cidade'); o0.value=''; b.append(o0);
-  c.b.forEach((x,i)=>{ const o=el('option',null,x.n); o.value=String(i); b.append(o); }); b.hidden=false; }
+function fillBairros(){ const b=$('#loc_bairro'); const v=$('#loc_sel').value; const c=v!==''?PLACES[+v]:null; b.innerHTML='';
+  if(!c){ const o=el('option',null,'Escolha a cidade primeiro'); o.value=''; b.append(o); b.disabled=true; return; }
+  const o0=el('option',null,c.b.length?'Centro da cidade':'Centro da cidade (sem bairros cadastrados)'); o0.value=''; b.append(o0);
+  c.b.forEach((x,i)=>{ const o=el('option',null,x.n); o.value=String(i); b.append(o); }); b.disabled=!c.b.length; }
 let found=null, sampleFn=null, findCtl=null, nameDirty=false, findAddr='';
 /* GPS do aparelho: funciona no arquivo baixado; dentro do Claude o navegador bloqueia */
 const GPS_OK=!!navigator.geolocation && !(window.claude&&window.claude.use) && (window.isSecureContext||location.protocol==='file:');
@@ -677,26 +703,26 @@ function renderRede(){
 /* ---------- agenda ---------- */
 let stF='ativos';
 function sortAg(arr){ return arr.sort((a,b)=>((a.data||'9999')+(a.hora||'')).localeCompare((b.data||'9999')+(b.hora||''))); }
+$('#stSel').onchange=e=>{stF=e.target.value; renderAgenda();};
 function renderAgenda(){
   const all=Store.list('agenda');
-  const box=$('#stPills'); box.innerHTML='';
-  const opts=[{k:'ativos',n:'Em aberto'},{k:'realizado',n:'Realizados'},{k:'cancelado',n:'Cancelados'},{k:'todos',n:'Todos'}];
-  const cnt=k=>all.filter(a=>k==='todos'||(k==='ativos'?(a.status==='pedido'||a.status==='agendado'):a.status===k)).length;
-  opts.forEach(o=>{ const b=el('button','pill',o.n); b.type='button'; b.append(el('span','n',cnt(o.k))); b.setAttribute('aria-pressed',stF===o.k); b.onclick=()=>{stF=o.k; renderAgenda();}; box.append(b); });
-  let rows=all.filter(a=>stF==='todos'||(stF==='ativos'?(a.status==='pedido'||a.status==='agendado'):a.status===stF));
+  const opts=[{k:'ativos',n:'Em aberto'},{k:'pedido',n:'Aguardando vaga'},{k:'agendado',n:'Agendados'},{k:'realizado',n:'Realizados'},{k:'cancelado',n:'Cancelados'},{k:'todos',n:'Todos'}];
+  const okSt=(a,k)=>k==='todos'||(k==='ativos'?(a.status==='pedido'||a.status==='agendado'):a.status===k);
+  const sel=$('#stSel'); sel.innerHTML=''; opts.forEach(o=>{ const op=el('option',null,o.n+' ('+all.filter(a=>okSt(a,o.k)).length+')'); op.value=o.k; sel.append(op); }); sel.value=stF;
+  let rows=all.filter(a=>okSt(a,stF));
   rows=sortAg(rows); if(stF==='realizado') rows.reverse();
   const L=$('#agendaList'); L.innerHTML='';
-  if(!rows.length){ L.append(el('p','empty',all.length?'Nada nesta situação.':'Nenhuma consulta ou exame ainda. Use "+ Nova consulta ou exame" ou o botão Agendar de um prestador na aba Rede.')); }
+  if(!rows.length){ L.append(el('p','empty',all.length?'Nada nesta situação.':'Nenhuma consulta ou exame ainda. Use "+ Novo" ou o botão Agendar de um prestador na aba Rede.')); }
   else{
-    const w=el('div','tbl'); const t=el('table'); const th=el('thead'); const hr=el('tr');
+    const w=el('div','tbl'); const t=el('table','rt ag'); const th=el('thead'); const hr=el('tr');
     ['Data','Especialidade / exame','Prestador','Situação',''].forEach(x=>hr.append(el('th',null,x))); th.append(hr); t.append(th);
     const tb=el('tbody');
     rows.forEach(a=>{ const tr=el('tr');
-      const d=el('td','num'); d.append(a.data?fmt(a.data):'Sem data'); if(a.hora) d.append(el('div','muted small',a.hora));
-      const e=el('td'); e.append(el('b',null,a.esp||'—')); e.append(el('div','muted small',a.tipo+(a.prot?' · prot. '+a.prot:'')));
-      const p=el('td',null,a.prest||'—'); if(a.obs){ p.append(el('div','muted small',a.obs)); }
-      const s=el('td'); s.append(el('span','st '+a.status,ST[a.status]||a.status)); const pi=prazoInfo(a); if(pi) s.append(el('span','prazo '+pi.cls,pi.txt));
-      const x=el('td'); const b=el('button','btn ghost sm','Editar'); b.type='button'; b.onclick=()=>openAg(a); x.append(b);
+      const d=el('td','num c-d'); d.append(a.data?fmt(a.data):'Sem data'); if(a.hora) d.append(el('div','muted small',a.hora));
+      const e=el('td','c-e'); e.append(el('b',null,a.esp||'—')); e.append(el('div','muted small',a.tipo+(a.prot?' · prot. '+a.prot:'')));
+      const p=el('td','c-p',a.prest||'—'); if(a.obs){ p.append(el('div','muted small',a.obs)); }
+      const s=el('td','c-s'); s.append(el('span','st '+a.status,ST[a.status]||a.status)); const pi=prazoInfo(a); if(pi) s.append(el('span','prazo '+pi.cls,pi.txt));
+      const x=el('td','c-x'); const b=el('button','btn ghost sm','Editar'); b.type='button'; b.onclick=()=>openAg(a); x.append(b);
       tr.append(d,e,p,s,x); tb.append(tr); });
     t.append(tb); w.append(t); L.append(w);
   }
@@ -707,19 +733,47 @@ function fillLists(){
   const el2=$('#prestList'); el2.innerHTML=''; DATA.forEach(r=>{const o=document.createElement('option'); o.value=r.nome+' — '+r.bairro; el2.append(o);});
 }
 let agEdit=null;
+const nowHM=()=>{ const d=new Date(); return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'); };
 function openAg(a,pre){
   agEdit=a?a.id:null; const v=a||Object.assign({tipo:'Consulta',status:'pedido',prazo:'14',pedido:today()},pre||{});
   $('#agTitle').textContent=a?'Editar compromisso':'Nova consulta ou exame';
   $('#ag_tipo').value=v.tipo||'Consulta'; $('#ag_status').value=v.status||'pedido'; $('#ag_esp').value=v.esp||''; $('#ag_prest').value=v.prest||'';
-  $('#ag_prazo').value=String(v.prazo??'14'); $('#ag_pedido').value=v.pedido||''; $('#ag_data').value=v.data||''; $('#ag_hora').value=v.hora||'';
-  $('#ag_prot').value=v.prot||''; $('#ag_obs').value=v.obs||''; $('#agDel').hidden=!a; $('#dlgAg').showModal();
+  $('#ag_prazo').value=String(v.prazo??'14'); $('#ag_pedido').value=v.pedido||''; $('#ag_data').value=v.data||''; $('#ag_hora').value=v.hora||nowHM();
+  $('#ag_prot').value=v.prot||''; $('#ag_obs').value=v.obs||''; try{ const w=JSON.parse(localStorage.getItem('gp_wa')||'{}'); $('#ag_wa').checked=w.on!==false; $('#ag_wanum').value=w.num||''; }catch(e){} $('#agDel').hidden=!a; $('#dlgAg').showModal();
 }
 $('#ag_esp').addEventListener('change',()=>{ const e=$('#ag_esp').value; if(e===CG||/^(Pediatria|Ginecologia|Cirurgia geral)$/.test(e)) $('#ag_prazo').value='7'; else if(/Análises clínicas|Papanicolau/i.test(e)) $('#ag_prazo').value='3'; });
 $('#ag_data').addEventListener('change',()=>{ if($('#ag_data').value&&$('#ag_status').value==='pedido') $('#ag_status').value='agendado'; });
 $('#fAg').onsubmit=async ev=>{ ev.preventDefault();
   const o={tipo:$('#ag_tipo').value,status:$('#ag_status').value,esp:$('#ag_esp').value.trim(),prest:$('#ag_prest').value.trim(),prazo:$('#ag_prazo').value,
     pedido:$('#ag_pedido').value,data:$('#ag_data').value,hora:$('#ag_hora').value,prot:$('#ag_prot').value.trim(),obs:$('#ag_obs').value.trim(),atualizado:new Date().toISOString()};
-  $('#dlgAg').close(); await Store.save('agenda',agEdit||Store.newId(),o); };
+  const sendWa=$('#ag_wa').checked, num=$('#ag_wanum').value.replace(/\D/g,'');
+  try{ localStorage.setItem('gp_wa',JSON.stringify({on:sendWa,num})); }catch(e){}
+  const url=sendWa?waLink(o,num):null; let opened=null;
+  if(url&&ONLINE){ try{ opened=window.open(url,'_blank','noopener'); }catch(e){} }
+  $('#dlgAg').close(); await Store.save('agenda',agEdit||Store.newId(),o);
+  showToast('Agendamento salvo.', url, !!opened); };
+function provOf(txt){ const s=norm(txt||''); if(!s) return null; return DATA.find(r=>s===norm(r.nome+' — '+r.bairro))||DATA.find(r=>s.startsWith(norm(r.nome)))||null; }
+const DOW=['domingo','segunda-feira','terça-feira','quarta-feira','quinta-feira','sexta-feira','sábado'];
+function waLink(a,num){
+  const r=provOf(a.prest); const q=r?(r.end+', '+r.bairro+', '+r.cidade+' - SP'):(a.prest||'');
+  const maps='https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(q);
+  const L=[];
+  L.push('*'+(a.tipo||'Consulta')+(a.esp?' – '+a.esp:'')+'*');
+  L.push(a.data?('📅 '+fmt(a.data)+(a.hora?' às '+a.hora:'')+' ('+DOW[pd(a.data).getDay()]+')'):'📅 Data ainda não marcada');
+  L.push('Situação: '+(ST[a.status]||a.status));
+  if(r){ L.push('🏥 '+r.nome); L.push('📍 '+q+(r.cep?', CEP '+r.cep:'')); if(r.tel) L.push('📞 '+r.tel); }
+  else if(a.prest) L.push('🏥 '+a.prest);
+  if(a.prot) L.push('Protocolo/guia: '+a.prot);
+  if(a.obs) L.push('Obs.: '+a.obs);
+  if(q) L.push('Como chegar: '+maps);
+  let n=num; if(n&&n.length<=11) n='55'+n;
+  return 'https://wa.me/'+(n||'')+'?text='+encodeURIComponent(L.join('\n'));
+}
+let toastT;
+function showToast(msg,url,opened){ const b=$('#toast'); b.innerHTML=''; b.append(el('span',null,msg+(url&&opened?' WhatsApp aberto.':'')));
+  if(url){ const a=el('a',null,opened?'Abrir de novo':'Enviar pelo WhatsApp'); a.href=url; a.target='_blank'; a.rel='noopener'; a.onclick=()=>setTimeout(()=>b.hidden=true,300); b.append(a); }
+  const x=el('button',null,'Fechar'); x.type='button'; x.onclick=()=>b.hidden=true; b.append(x);
+  b.hidden=false; clearTimeout(toastT); toastT=setTimeout(()=>b.hidden=true,url?30000:4000); }
 let agDelArm=false;
 $('#agDel').onclick=async()=>{ if(!agDelArm){ agDelArm=true; $('#agDel').textContent='Confirmar exclusão'; setTimeout(()=>{agDelArm=false; $('#agDel').textContent='Excluir';},3000); return; }
   agDelArm=false; $('#agDel').textContent='Excluir'; $('#dlgAg').close(); await Store.remove('agenda',agEdit); };
@@ -741,13 +795,13 @@ function renderProt(){
   const all=Store.list('protocolos').slice().sort((a,b)=>(b.data||'').localeCompare(a.data||''));
   const L=$('#protList'); L.innerHTML='';
   if(!all.length){ L.append(el('p','empty','Nenhum protocolo anotado ainda.')); }
-  else{ const w=el('div','tbl'); const t=el('table'); const hr=el('tr');
+  else{ const w=el('div','tbl'); const t=el('table','rt pr'); const hr=el('tr');
     ['Data','Canal','Protocolo','Assunto','Situação',''].forEach(x=>hr.append(el('th',null,x))); const th=el('thead'); th.append(hr); t.append(th);
     const tb=el('tbody'); all.forEach(p=>{ const tr=el('tr');
       const a=el('td'); a.append(el('b',null,p.ass)); if(p.resp) a.append(el('div','muted small',p.resp));
       const s=el('td'); const ps=PST[p.st]||PST.aberto; s.append(el('span','st '+ps[1],ps[0]));
       const x=el('td'); const b=el('button','btn ghost sm','Editar'); b.type='button'; b.onclick=()=>openPr(p); x.append(b);
-      tr.append(el('td','num',fmt(p.data)),el('td',null,p.canal+(p.at?' · '+p.at:'')),el('td','num',p.num||'—'),a,s,x); tb.append(tr); });
+      a.className='c-e'; s.className='c-s'; x.className='c-x'; tr.append(el('td','num c-d',fmt(p.data)),el('td','c-c',p.canal+(p.at?' · '+p.at:'')),el('td','num c-n',p.num?'Prot. '+p.num:'Sem protocolo'),a,s,x); tb.append(tr); });
     t.append(tb); w.append(t); L.append(w); }
   $('#n-prot').textContent=all.length;
 }
