@@ -65,7 +65,11 @@ nav.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(-
 input,select,textarea{font:inherit;font-size:.95rem;padding:7px 10px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink);max-width:100%;width:100%}
 textarea{min-height:70px;resize:vertical}
 .filters{display:flex;flex-direction:column;gap:10px;background:var(--bg);padding-block:6px}
-.frow{display:grid;grid-template-columns:2fr 2fr auto;gap:8px;align-items:center}
+.frow2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr);gap:8px}
+.frow3{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center}
+@media (max-width:560px){.frow2{grid-template-columns:1fr}}
+.frow{display:grid;grid-template-columns:minmax(230px,1.4fr) 2fr 1.6fr auto;gap:8px;align-items:center}
+@media (max-width:900px){.frow{grid-template-columns:1fr 1fr}}
 @media (max-width:640px){.frow{grid-template-columns:1fr}}
 .chk{display:flex;gap:6px;align-items:center;font-size:.9rem;white-space:nowrap}
 .chk input{width:auto}
@@ -129,6 +133,7 @@ table.lt tr.ger td:first-child{box-shadow:inset 4px 0 0 var(--warm)}
 table.lt .btn.sm{margin-top:4px}
 .locbar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;background:var(--accent-soft);border-radius:10px;padding:10px 14px}
 .locname{font-weight:700}
+.btn.gps::before{content:"";display:inline-block;width:.6em;height:.6em;border-radius:50%;border:2px solid currentColor;margin-right:6px;vertical-align:.05em}
 .item .km{align-self:flex-start}
 .searchrow{display:flex;gap:8px}
 .searchrow input{flex:1;min-width:0}
@@ -136,6 +141,8 @@ table.lt .btn.sm{margin-top:4px}
 .locres{background:var(--accent-soft);border-radius:8px;padding:10px 12px;font-size:.9rem;display:flex;flex-direction:column;gap:4px}
 .locres.err{background:var(--bad-soft);color:var(--bad)}
 .locres a{color:var(--accent);font-weight:700}
+.locres a.btn{color:var(--accent-ink);align-self:flex-start;text-decoration:none}
+.locres .steps{margin:4px 0 0;padding-left:20px;display:flex;flex-direction:column;gap:3px}
 .km{font-size:.78rem;font-weight:700;color:var(--accent);background:var(--accent-soft);border-radius:999px;padding:1px 8px;white-space:nowrap;font-variant-numeric:tabular-nums}
 details summary{cursor:pointer;color:var(--accent);font-weight:700;font-size:.9rem}
 .near-cat{font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:700}
@@ -165,7 +172,7 @@ button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-vis
 
   <div class="locbar">
     <div><span class="tag">Ponto de partida</span><div class="locname" id="locName">Rua Ana Soares Barcelos (Vila Venditti, Guarulhos)</div></div>
-    <button class="btn ghost sm" type="button" id="locBtn">Alterar localização</button>
+    <div class="row"><button class="btn sm gps" type="button" id="gpsBtn" hidden>Usar minha localização</button><button class="btn ghost sm" type="button" id="locBtn">Alterar localização</button></div>
   </div>
 
   <!-- INÍCIO -->
@@ -183,14 +190,6 @@ button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-vis
       </div>
     </div>
     <div class="grid2">
-      <div class="box warm">
-        <h2>Geriatria: só 2 locais na rede</h2>
-        <ul>
-          <li><b>Vida Nova Saúde</b>, Santo Amaro (Zona Sul), (11) 5541-9700</li>
-          <li><b>O Dr Atende</b>, Lapa (Zona Oeste), (11) 3643-6770</li>
-        </ul>
-        <p class="small">Nenhum prestador da rede fica em Itaquaquecetuba ou no Alto Tietê.</p>
-      </div>
       <div class="box">
         <h2 id="nearTitle">Mais perto</h2>
         <div class="list" id="nearList"></div>
@@ -202,10 +201,12 @@ button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-vis
   <!-- REDE -->
   <div class="panel" id="p-rede" hidden>
     <div class="filters">
-      <div class="row" id="tipoPills" role="group" aria-label="Tipo de prestador"></div>
-      <div class="row" id="regPills" role="group" aria-label="Região"></div>
-      <div class="frow">
+      <div class="frow2">
+        <select id="fTipo" aria-label="Tipo de prestador"></select>
         <select id="fEsp" aria-label="Especialidade ou exame"><option value="">Todas as especialidades e exames</option></select>
+      </div>
+      <div class="row" id="regPills" role="group" aria-label="Região"></div>
+      <div class="frow3">
         <input id="fTxt" type="search" placeholder="Buscar por nome, bairro ou rua" aria-label="Buscar">
         <label class="chk"><input type="checkbox" id="fFav"> Só favoritos</label>
       </div>
@@ -287,6 +288,8 @@ button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-vis
 <dialog id="dlgLoc">
   <form id="fLoc">
     <h2>Definir localização</h2>
+    <button type="button" class="btn gps" id="gpsBtn2" hidden>Usar a localização deste aparelho</button>
+    <p class="note" id="gpsMsg" hidden></p>
     <div class="fl">Endereço ou CEP
       <div class="searchrow">
         <input id="loc_addr" placeholder="Ex.: Rua Tal, 120, Itaquaquecetuba ou 08570-000" autocomplete="street-address">
@@ -419,25 +422,83 @@ function pillRow(box,items,key){
     b.append(el('span','n',c)); b.setAttribute('aria-pressed',F[key]===it.k);
     b.onclick=()=>{ F[key]=it.k; if(key==='tipo') F.esp=''; saveF(); renderRede(); }; box.append(b); }
 }
+const EXAME=/Anatomia Patológica|Anuscopia|Análises Clínicas|Audiometria|Colonoscopia|Colposcopia|Densitometria|Ecodoppler|Eletrocardiograma|Eletroencefalograma|Eletroneuromiografia|Endoscopia|Espirometria|Histeroscopia|Holter|Impedanciometria|MAPA|Mamografia|Manometria|Nasofibrolaringoscopia|Papanicolau|Prova de Função|Radiologia|Ressonância|Retossigmoidoscopia|Teste Ergométrico|Tomografia|Ultrassonografia|Urodinâmica|Urofluxometria|Vulvoscopia|pH-metria/;
+const isExame=e=>EXAME.test(e);
 function fillEsp(){
   const s=$('#fEsp'); const pool=DATA.filter(r=>!F.tipo||r.tipo===F.tipo);
-  const all=[...new Set(pool.flatMap(r=>r.esp))].sort((a,b)=>a.localeCompare(b,'pt'));
+  let all=[...new Set(pool.flatMap(r=>r.esp))].sort((a,b)=>a.localeCompare(b,'pt'));
+  if(F.tipo==='cli') all=all.filter(e=>!isExame(e));
+  if(F.tipo==='lab') all=all.filter(isExame);
   if(F.esp&&!all.includes(F.esp)) F.esp='';
-  s.innerHTML=''; const o0=el('option',null,'Todas as especialidades e exames'); o0.value=''; s.append(o0);
-  all.forEach(e=>{ const o=el('option',null,e); o.value=e; s.append(o); }); s.value=F.esp;
+  const label={'':'Todas as especialidades e exames',cli:'Todas as especialidades',lab:'Todos os exames',hos:'Todos os atendimentos e exames'}[F.tipo||''];
+  s.innerHTML=''; const o0=el('option',null,label); o0.value=''; s.append(o0);
+  const cnt=e=>DATA.filter(r=>r.esp.includes(e)&&matches(r,'esp')).length;
+  const groups=F.tipo==='cli'?[['',all]]:F.tipo==='lab'?[['',all]]:[['Especialidades e atendimentos',all.filter(e=>!isExame(e))],['Exames',all.filter(isExame)]];
+  for(const [g,list] of groups){ if(!list.length) continue; const box=g?document.createElement('optgroup'):s; if(g){ box.label=g; s.append(box); }
+    list.forEach(e=>{ const o=el('option',null,e+' ('+cnt(e)+')'); o.value=e; box.append(o); }); }
+  s.value=F.esp; s.setAttribute('aria-label',label.replace(/^Tod[ao]s? (as |os )?/,''));
 }
+$('#fTipo').onchange=e=>{F.tipo=e.target.value; F.esp=''; saveF(); renderRede();};
 $('#fEsp').onchange=e=>{F.esp=e.target.value; saveF(); renderRede();};
 let tT; $('#fTxt').oninput=e=>{ clearTimeout(tT); tT=setTimeout(()=>{F.txt=e.target.value.trim(); saveF(); renderRede();},180); };
 $('#fFav').onchange=e=>{F.fav=e.target.checked; saveF(); renderRede();};
 document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>{F.view=b.dataset.view; saveF(); renderRede();});
 document.querySelectorAll('[data-sort]').forEach(b=>b.onclick=()=>{F.sort=b.dataset.sort; saveF(); renderRede();});
-function fillPlaces(){ const s=$('#loc_sel'); s.innerHTML=''; const groups={};
+function fillPlaces(){ const s=$('#loc_sel'); s.innerHTML=''; const groups={}; const o0=el('option',null,'— escolher —'); o0.value=''; s.append(o0);
   PLACES.forEach((p,i)=>{ if(!groups[p.g]){ groups[p.g]=document.createElement('optgroup'); groups[p.g].label=p.g; s.append(groups[p.g]); }
     const o=el('option',null,p.n); o.value=String(i); groups[p.g].append(o); });
   const o=el('option',null,'Endereço exato (coordenadas abaixo)'); o.value='custom'; s.append(o); }
-let found=null, sampleFn=null, findCtl=null;
-if(window.claude&&window.claude.use){ window.claude.use('sample').then(f=>{ sampleFn=f; if(!f) noAuto(); }).catch(noAuto); } else noAuto();
-function noAuto(){ sampleFn=null; $('#loc_find').textContent='Abrir no Maps'; $('#loc_hint').textContent='A busca automática não está disponível aqui. Localizar abre o endereço no Google Maps, e de lá você copia as coordenadas para o campo abaixo.'; }
+let found=null, sampleFn=null, findCtl=null, nameDirty=false, findAddr='';
+/* GPS do aparelho: funciona no arquivo baixado; dentro do Claude o navegador bloqueia */
+const GPS_OK=!!navigator.geolocation && !(window.claude&&window.claude.use) && (window.isSecureContext||location.protocol==='file:');
+if(GPS_OK){ $('#gpsBtn').hidden=false; $('#gpsBtn2').hidden=false; }
+function gpsMsg(txt,err){ const m=$('#gpsMsg'); m.textContent=txt; m.className='note'+(err?' prazo bad':''); m.hidden=false; }
+function useGPS(fromDialog){
+  const btns=[$('#gpsBtn'),$('#gpsBtn2')]; btns.forEach(b=>{b.disabled=true; b.dataset.t=b.textContent; b.textContent='Localizando...';});
+  const done=()=>btns.forEach(b=>{b.disabled=false; b.textContent=b.dataset.t;});
+  navigator.geolocation.getCurrentPosition(async pos=>{ done();
+    const la=+pos.coords.latitude.toFixed(5), lo=+pos.coords.longitude.toFixed(5), acc=Math.round(pos.coords.accuracy||0);
+    const h=new Date(); const hh=String(h.getHours()).padStart(2,'0')+':'+String(h.getMinutes()).padStart(2,'0');
+    const L={nome:'Minha localização ('+hh+(acc?' · precisão ~'+(acc>=1000?Math.round(acc/1000)+' km':acc+' m'):'')+')',lat:la,lon:lo};
+    if($('#dlgLoc').open) $('#dlgLoc').close();
+    F.sort='dist'; saveF(); await Store.save('prefs','local',L);
+    if(!(la<-19&&la>-26&&lo<-44&&lo>-54)) alertMsg('Sua localização está fora do estado de São Paulo. As distâncias vão ficar grandes.');
+  }, err=>{ done();
+    const msg=err&&err.code===1?'A permissão de localização foi negada. Libere nas configurações do navegador (ícone de cadeado ao lado do endereço) e tente de novo.'
+      :err&&err.code===3?'A localização demorou demais. Tente de novo perto de uma janela ou com o Wi-Fi ligado.'
+      :'Não foi possível obter a localização deste aparelho. Use o endereço ou a lista.';
+    if($('#dlgLoc').open) gpsMsg(msg,true); else alertMsg(msg);
+  }, {enableHighAccuracy:true,timeout:15000,maximumAge:60000});
+}
+$('#gpsBtn').onclick=()=>useGPS(false);
+$('#gpsBtn2').onclick=()=>useGPS(true);
+/* Arquivo baixado: busca pela internet (ViaCEP + OpenStreetMap). Dentro do Claude: estimativa do Claude. */
+const ONLINE=!(window.claude&&window.claude.use);
+if(!ONLINE){ window.claude.use('sample').then(f=>{ sampleFn=f; if(!f) noAuto(); }).catch(noAuto); }
+else { $('#loc_hint').textContent='Digite o endereço ou CEP e toque em Recalcular. A busca usa a internet (ViaCEP e OpenStreetMap).'; }
+async function getJSON(url){ const c=new AbortController(); const tm=setTimeout(()=>c.abort(),9000);
+  try{ const r=await fetch(url,{signal:c.signal,headers:{'Accept':'application/json'}}); if(!r.ok) throw new Error('http '+r.status); return await r.json(); } finally{ clearTimeout(tm); } }
+const SPBOX=(la,lo)=>la<-19&&la>-26&&lo<-44&&lo>-54;
+async function osm(params){ const u='https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=br&accept-language=pt-BR&viewbox=-47.3,-23.1,-45.7,-24.1&'+params;
+  const a=await getJSON(u); if(Array.isArray(a)&&a[0]){ const la=+a[0].lat, lo=+a[0].lon; if(SPBOX(la,lo)) return {lat:+la.toFixed(5),lon:+lo.toFixed(5),disp:a[0].display_name}; } return null; }
+async function geocodeOnline(q){
+  const enc=encodeURIComponent; let rua='',bairro='',cidade='',uf='SP';
+  const cm=q.match(/\b(\d{5})-?(\d{3})\b/);
+  const num=(q.replace(cm?cm[0]:'','').match(/(?:,|\bn[º°o.]?)\s*(\d{1,5})\b/i)||[])[1]||'';
+  if(cm){ try{ const v=await getJSON('https://viacep.com.br/ws/'+cm[1]+cm[2]+'/json/'); if(v&&!v.erro){ rua=v.logradouro||''; bairro=v.bairro||''; cidade=v.localidade||''; uf=v.uf||'SP'; } }catch(e){} }
+  const c0=cityOf(q); if(!cidade&&c0) cidade=c0.n;
+  const tries=[];
+  if(rua&&cidade) tries.push(['rua','street='+enc((num?num+' ':'')+rua)+'&city='+enc(cidade)+'&state='+enc(uf)]);
+  const free=q.replace(cm?cm[0]:'','').replace(/\s+/g,' ').trim().replace(/^,|,$/g,'');
+  if(free&&!/^\d*$/.test(free)) tries.push(['rua','q='+enc(free+(cidade&&!new RegExp(cidade,'i').test(free)?', '+cidade:'')+(/\bsp\b|são paulo/i.test(free)?'':', SP')+', Brasil')]);
+  if(bairro&&cidade) tries.push(['bairro','q='+enc(bairro+', '+cidade+', '+uf+', Brasil')]);
+  if(cidade) tries.push(['cidade','city='+enc(cidade)+'&state='+enc(uf)]);
+  for(const [prec,params] of tries){ const r=await osm(params); if(r){
+      const local=rua?[rua+(num?', '+num:''),bairro,cidade].filter(Boolean).join(', '):(r.disp||q).split(',').slice(0,3).join(',');
+      return {...r,local,precisao:prec}; } }
+  return null;
+}
+function noAuto(){ sampleFn=null; $('#loc_hint').textContent='A busca automática não está disponível aqui. Escolha na lista ou cole as coordenadas do Google Maps.'; }
 function parseCoord(txt){ const s=String(txt||'');
   const dms=s.match(/(\d{1,2})\s*°\s*(\d{1,2})\s*['′]\s*([\d.,]+)\s*(?:"|″|'')?\s*([NSns])[\s,;]*(\d{1,3})\s*°\s*(\d{1,2})\s*['′]\s*([\d.,]+)\s*(?:"|″|'')?\s*([EWOLewol])/);
   if(dms){ const f=(d,m,x)=>+d+ +m/60+parseFloat(x.replace(',','.'))/3600; let la=f(dms[1],dms[2],dms[3]), lo=f(dms[5],dms[6],dms[7]);
@@ -448,13 +509,19 @@ function parseCoord(txt){ const s=String(txt||'');
   if(!m) return null; const la=parseFloat(m[1].replace(',','.')), lo=parseFloat(m[2].replace(',','.'));
   if(!(la<-19&&la>-26&&lo<-44&&lo>-54)) return null; return {lat:+la.toFixed(5),lon:+lo.toFixed(5)}; }
 const gmLink=(la,lo)=>'https://www.google.com/maps?q='+la+','+lo;
+const mapsSearch=q=>'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(/\bsp\b|são paulo/i.test(q)?q:q+', SP');
+function mapsStep(url){ const a=el('a','btn sm',"Abrir no Google Maps"); a.href=url; a.target='_blank'; a.rel='noopener';
+  const ol=el('ol','steps'); ['No Google Maps, clique com o botão direito no ponto vermelho (no celular, toque e segure).','Clique nos números que aparecem no topo (ex.: -23.49102, -46.54403). Eles são copiados.','Volte aqui, cole no campo "Coordenadas ou link" logo abaixo e toque em Recalcular.'].forEach(s=>ol.append(el('li',null,s)));
+  showRes([el('b',null,'Abrimos o endereço no Google Maps'), el('span',null,'Se a aba não abriu, use o botão:'), a, ol]); }
 function showRes(html,err){ $('#loc_hint').hidden=true; const r=$('#loc_res'); r.className='locres'+(err?' err':''); r.innerHTML=''; r.append(...html); r.hidden=false; }
-$('#locBtn').onclick=()=>{ const L=getLoc(); const i=PLACES.findIndex(p=>p.n===L.nome&&p.lat===L.lat&&p.lon===L.lon);
-  found=null; $('#loc_res').hidden=true; $('#loc_hint').hidden=false; $('#loc_addr').value='';
-  $('#loc_sel').value=i>=0?String(i):'custom'; $('#loc_adv').open=false; $('#loc_coord').value=i<0?(L.lat+', '+L.lon):''; $('#loc_nome').value=i<0?L.nome:'';
-  $('#loc_err').hidden=true; $('#dlgLoc').showModal(); setTimeout(()=>$('#loc_addr').focus(),50); };
-$('#loc_sel').onchange=()=>{ found=null; $('#loc_res').hidden=true; if($('#loc_sel').value==='custom') $('#loc_adv').open=true; else $('#loc_coord').value=''; };
-$('#loc_coord').oninput=()=>{ const c=parseCoord($('#loc_coord').value); if(c){ $('#loc_sel').value='custom'; found=null; } };
+$('#locBtn').onclick=()=>{ const L=getLoc();
+  found=null; nameDirty=false; $('#loc_res').hidden=true; $('#loc_hint').hidden=false; $('#loc_addr').value='';
+  $('#loc_sel').value=''; $('#loc_adv').open=false; $('#loc_coord').value=''; $('#loc_nome').value=''; $('#loc_nome').placeholder='Atual: '+L.nome;
+  $('#loc_err').hidden=true; $('#gpsMsg').hidden=true; $('#dlgLoc').showModal(); setTimeout(()=>$('#loc_addr').focus(),50); };
+$('#loc_nome').addEventListener('input',()=>{ nameDirty=!!$('#loc_nome').value.trim(); });
+$('#loc_addr').addEventListener('input',()=>{ found=null; $('#loc_res').hidden=true; $('#loc_err').hidden=true; if($('#loc_addr').value.trim()){ $('#loc_sel').value=''; $('#loc_coord').value=''; } });
+$('#loc_sel').onchange=()=>{ found=null; $('#loc_res').hidden=true; $('#loc_err').hidden=true; const v=$('#loc_sel').value; if(v==='custom') $('#loc_adv').open=true; else if(v){ $('#loc_coord').value=''; $('#loc_addr').value=''; if(!nameDirty) $('#loc_nome').value=''; } };
+$('#loc_coord').oninput=()=>{ $('#loc_err').hidden=true; const c=parseCoord($('#loc_coord').value); if(c){ $('#loc_sel').value='custom'; found=null; } };
 $('#loc_addr').addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); $('#loc_find').click(); } });
 const CITIES=[
  {n:'Guarulhos',ceps:[[7000,7399]],lat:-23.4628,lon:-46.5333,box:[-23.53,-23.32,-46.59,-46.38],k:/guarulhos/},
@@ -473,8 +540,16 @@ const inBox=(c,la,lo)=>la>=c.box[0]&&la<=c.box[1]&&lo>=c.box[2]&&lo<=c.box[3];
 $('#loc_find').onclick=async()=>{
   const q=$('#loc_addr').value.trim(); if(!q){ $('#loc_addr').focus(); return; }
   const direct=parseCoord(q); if(direct){ found={...direct,local:q}; acceptFound('Coordenadas reconhecidas'); return; }
-  if(!sampleFn){ window.open('https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(q+', SP'),'_blank'); $('#loc_adv').open=true;
-    showRes([el('span',null,'Se o Google Maps não abriu, use o link "Abrir o Google Maps" abaixo.')]); return; }
+  if(ONLINE){ const btn=$('#loc_find'); btn.disabled=true; btn.textContent='Buscando...'; showRes([el('span',null,'Procurando o endereço...')]);
+    try{ const r=await geocodeOnline(q);
+      if(r){ found={lat:r.lat,lon:r.lon,local:r.local.slice(0,120),precisao:r.precisao==='rua'?'':r.precisao,q}; acceptFound(); }
+      else { found=null; const a=el('a',null,'Abrir no Google Maps'); a.href=mapsSearch(q); a.target='_blank'; a.rel='noopener';
+        showRes([el('span',null,'Não encontrei esse endereço. Confira a grafia, inclua bairro e cidade, ou cole as coordenadas abaixo.'),a],true); $('#loc_adv').open=true; } }
+    catch(e){ found=null; showRes([el('span',null,'Sem conexão com a internet para buscar o endereço. Escolha na lista ou cole as coordenadas.')],true); }
+    finally{ btn.disabled=false; btn.textContent='Localizar'; }
+    return; }
+  if(!sampleFn){ const a=el('a',null,'Abrir no Google Maps'); a.href=mapsSearch(q); a.target='_blank'; a.rel='noopener';
+    showRes([el('span',null,'A busca automática não está disponível aqui. Escolha na lista ou cole as coordenadas.'),a],true); $('#loc_adv').open=true; return; }
   findCtl?.abort(); findCtl=new AbortController(); const btn=$('#loc_find'); btn.disabled=true; btn.textContent='Buscando...';
   showRes([el('span',null,'Procurando o endereço... pode levar alguns segundos.')]);
   try{
@@ -500,16 +575,23 @@ $('#loc_find').onclick=async()=>{
     else showRes([el('span',null,'A busca falhou. Tente de novo.')],true); }
   finally{ btn.disabled=false; if(sampleFn) btn.textContent='Localizar'; }
 };
-function acceptFound(title){ $('#loc_sel').value='custom'; $('#loc_coord').value=found.lat+', '+found.lon; if(!$('#loc_nome').value.trim()) $('#loc_nome').value=found.note?found.q:found.local;
+function acceptFound(title){ $('#loc_sel').value='custom'; $('#loc_coord').value=found.lat+', '+found.lon; if(!nameDirty) $('#loc_nome').value=found.note?found.q:found.local;
   const a=el('a',null,found.note?'Buscar este endereço no Google Maps':'Conferir no Google Maps'); a.href=found.note?('https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(found.q)):gmLink(found.lat,found.lon); a.target='_blank'; a.rel='noopener';
   const prec=found.precisao==='cidade'?' Localização aproximada (só a cidade): inclua a rua e o bairro para ficar mais preciso.':found.precisao==='bairro'?' Localização aproximada (bairro).':'';
   if(found.note){ $('#loc_adv').open=true; $('#loc_coord').value=''; $('#loc_nome').value=$('#loc_nome').value||found.q; }
   const parts=[el('b',null,title||(found.note?('Localização aproximada: centro de '+found.city):('Encontrado: '+found.local))), el('span',null,'Coordenadas '+found.lat+', '+found.lon+'.'+(found.note?'':prec))]; if(found.note) parts.push(el('span',null,found.note)); parts.push(a); showRes(parts); }
-$('#fLoc').onsubmit=async ev=>{ ev.preventDefault(); let L;
-  if($('#loc_sel').value==='custom'){ const c=found||parseCoord($('#loc_coord').value);
-    if(!c){ const er=$('#loc_err'); er.textContent='Localização não reconhecida. Toque em Localizar, escolha na lista ou cole coordenadas no formato -23.4861, -46.3486.'; er.hidden=false; return; }
-    L={nome:$('#loc_nome').value.trim()||c.local||'Endereço informado',lat:c.lat,lon:c.lon};
-  } else { const p=PLACES[+$('#loc_sel').value]; L={nome:$('#loc_nome').value.trim()||p.n,lat:p.lat,lon:p.lon}; }
+$('#fLoc').onsubmit=async ev=>{ ev.preventDefault(); const er=$('#loc_err'); er.hidden=true;
+  const fail=m=>{ er.textContent=m; er.hidden=false; };
+  const addr=$('#loc_addr').value.trim(), coord=parseCoord($('#loc_coord').value), sel=$('#loc_sel').value;
+  const nome=d=>nameDirty?$('#loc_nome').value.trim():d;
+  let L=null;
+  if(coord&&!found){ L={nome:nome(addr||'Endereço informado'),lat:coord.lat,lon:coord.lon}; }
+  else if(found){ L={nome:nome(found.note?found.q:found.local),lat:found.lat,lon:found.lon}; }
+  else if(addr){
+    await $('#loc_find').onclick(); if(!found) return; L={nome:nome(found.note?found.q:found.local),lat:found.lat,lon:found.lon};
+  }
+  else if(sel&&sel!=='custom'){ const p=PLACES[+sel]; L={nome:nome(p.n),lat:p.lat,lon:p.lon}; }
+  if(!L) return fail('Digite um endereço, escolha uma cidade ou bairro, ou cole coordenadas.');
   $('#dlgLoc').close(); F.sort='dist'; saveF(); await Store.save('prefs','local',L); };
 function agendarDe(r){ const ger=r.esp.includes('Geriatria'); openAg(null,{prest:r.nome+' — '+r.bairro,esp:F.esp||(ger?'Geriatria':''),tipo:r.tipo==='lab'?'Exame':'Consulta',prazo:r.tipo==='lab'?'10':'14'}); }
 function copyBtn(txt,target){ const cp=el('button','btn ghost sm','Copiar'); cp.type='button';
@@ -557,7 +639,8 @@ function card(r,fav){
   c.append(ch); return c;
 }
 function renderRede(){
-  pillRow($('#tipoPills'),[{k:'',n:'Todos'},...TIPOS],'tipo');
+  { const s=$('#fTipo'); s.innerHTML=''; [{k:'',n:'Todos os tipos'},...TIPOS].forEach(it=>{ const c=DATA.filter(r=>(!it.k||r.tipo===it.k)&&matches(r,'tipo')).length;
+      const o=el('option',null,it.n+' ('+c+')'); o.value=it.k; s.append(o); }); s.value=F.tipo; }
   pillRow($('#regPills'),[{k:'',n:'Todas as regiões'},...REG],'reg');
   fillEsp(); if(document.activeElement!==$('#fTxt')) $('#fTxt').value=F.txt; $('#fFav').checked=F.fav;
   const fav=favSet(); const box=$('#redeList'); box.innerHTML=''; let tot=0;
