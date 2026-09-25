@@ -33,7 +33,8 @@
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 .gone{display:none!important}
-body{background:var(--bg);color:var(--ink);font:16px/1.5 "Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",sans-serif;padding-inline:16px;padding-block:20px 56px}
+html{font-size:var(--fs,100%)}
+body{background:var(--bg);color:var(--ink);font:1rem/1.5 "Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",sans-serif;padding-inline:16px;padding-block:20px 56px}
 .wrap{max-width:1000px;margin:0 auto;display:flex;flex-direction:column;gap:20px}
 h1,h2,h3{font-family:Bitter,Georgia,serif;margin:0;text-wrap:balance;line-height:1.2}
 h1{font-size:clamp(1.5rem,4vw,2rem)}
@@ -147,6 +148,9 @@ table.lt .btn.sm{margin-top:4px}
 .locbar .locacts{display:flex;gap:6px}
 .locbar .btn.sm{padding:2px 9px;font-size:.78rem}
 .locname{font-weight:700}
+.fsz{display:grid;grid-template-columns:repeat(4,auto);align-self:flex-start}
+@media (max-width:520px){.fsz{grid-template-columns:1fr 1fr;align-self:stretch}.fsz button:nth-child(3){border-left:0}.fsz button:nth-child(n+3){border-top:1px solid var(--line)}}
+.fsz button[data-fs="90"]{font-size:.8rem}.fsz button[data-fs="115"]{font-size:.95rem}.fsz button[data-fs="130"]{font-size:1.05rem}
 .acct{float:right;display:flex;align-items:center;gap:8px;font-size:.85rem;color:var(--muted);margin-left:12px}
 .login{position:fixed;inset:0;z-index:60;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:24px 16px calc(24px + env(safe-area-inset-bottom,0px))}
 .login-card{width:min(400px,100%);background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:28px 22px;display:flex;flex-direction:column;gap:12px;text-align:center;box-shadow:0 10px 40px rgba(0,0,0,.08)}
@@ -218,6 +222,7 @@ button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-vis
 <body>
 
 
+<script>try{var fs=localStorage.getItem("gp_fs");if(fs)document.documentElement.style.setProperty("--fs",fs+"%");}catch(e){}</script>
 <div class="wrap">
   <header>
     <div class="acct" id="acct" hidden><span id="acctName"></span><button type="button" class="btn ghost sm" id="acctOut">Sair</button></div>
@@ -276,7 +281,7 @@ button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-vis
         <label class="chk"><input type="checkbox" id="fFav"> Só favoritos</label>
       </div>
       <div class="row between"><span class="count" id="count"></span>
-        <div class="row"><div class="seg" role="group" aria-label="Ordenar"><button type="button" data-sort="reg">Por região</button><button type="button" data-sort="dist">Por distância</button></div><div class="seg" role="group" aria-label="Modo de exibição"><button type="button" data-view="cards">Cartões</button><button type="button" data-view="lista">Lista</button></div></div></div>
+        <div class="row"><div class="seg" role="group" aria-label="Ordenar"><button type="button" data-sort="reg">Por região</button><button type="button" data-sort="dist">Por distância</button></div></div></div>
     </div>
     <div id="redeList"></div>
   </div>
@@ -314,6 +319,13 @@ button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-vis
       </div>
       <p class="note" id="pf_msg" hidden></p>
     </form>
+    <div class="box perfil">
+      <h2>Tamanho da letra</h2>
+      <div class="seg fsz" role="group" aria-label="Tamanho da letra">
+        <button type="button" data-fs="90">Pequena</button><button type="button" data-fs="100">Normal</button><button type="button" data-fs="115">Grande</button><button type="button" data-fs="130">Muito grande</button>
+      </div>
+      <p class="note">Vale só para este aparelho.</p>
+    </div>
     <div class="box perfil gone">
       <h2>Backup</h2>
       <p class="note" id="bk_note">Salve uma cópia da agenda, dos protocolos, favoritos e perfil. Use para não perder nada ou para levar os dados para outro aparelho.</p>
@@ -587,6 +599,7 @@ document.querySelectorAll('nav.tabs button').forEach(b=>b.onclick=()=>setTab(b.d
 /* ---------- rede ---------- */
 const F={tipo:'',reg:'',esp:'',txt:'',fav:false,view:'cards',sort:'dist'};
 try{ Object.assign(F,JSON.parse(localStorage.getItem('gp_f')||'{}')); }catch(e){}
+F.view='cards';
 const saveF=()=>{ try{localStorage.setItem('gp_f',JSON.stringify(F));}catch(e){} };
 const norm=s=>s.normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();
 function matches(r,skip){
@@ -1090,6 +1103,10 @@ $('#fb_save').onclick=()=>{ const c=parseFbCfg($('#fb_cfg').value); if(!c){ clou
 $('#fb_login').onclick=()=>Cloud.login().catch(e=>cloudMsg(cloudErr(e),true));
 $('#fb_out').onclick=()=>Cloud.logout().catch(e=>cloudMsg(cloudErr(e),true));
 $('#fb_reset').onclick=()=>{ try{ localStorage.removeItem('gp_fbcfg'); }catch(e){} location.reload(); };
+function setFs(v){ document.documentElement.style.setProperty('--fs',v+'%'); try{ localStorage.setItem('gp_fs',v); }catch(e){}
+  document.querySelectorAll('[data-fs]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.fs===String(v))); }
+document.querySelectorAll('[data-fs]').forEach(b=>b.onclick=()=>setFs(b.dataset.fs));
+{ let v='100'; try{ v=localStorage.getItem('gp_fs')||'100'; }catch(e){} setFs(v); }
 function renderAll(){ renderPerfil(); renderInicio(); renderAgenda(); renderProt(); renderRede(); }
 document.querySelectorAll('[data-new]').forEach(b=>b.onclick=()=>b.dataset.new==='agenda'?openAg(null):openPr(null));
 document.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>b.closest('dialog').close());
